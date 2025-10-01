@@ -11,7 +11,12 @@
         "<!@(node -p \"require('windows-sdks').getNugetPackagePath('Microsoft.WindowsAppSDK.Foundation').replace(/\\\\/g, '/') + '/include'\")",
         "../.winsdk/generated/include",
       ],
-      "defines": [ "NAPI_DISABLE_CPP_EXCEPTIONS" ],
+      "msvs_settings": {
+        "VCCLCompilerTool": {
+          "ExceptionHandling": 1,
+          "AdditionalOptions": ["/EHsc"]
+        }
+      },
       "library_dirs": [
         "<!@(node -p \"require('windows-sdks').getNugetPackagePath('Microsoft.WindowsAppSDK.Foundation').replace(/\\\\/g, '/') + '/lib/native/<(target_arch)'\")",
         "../build/<(target_arch)/Release"
