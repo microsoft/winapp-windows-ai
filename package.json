@@ -1,0 +1,21 @@
+{
+  "name": "windows-ai-addon",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build-windows-ai-addon": "node-gyp clean configure build --directory=windows-ai-addon --arch=arm64"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "nan": "^2.23.0",
+    "node-addon-api": "^8.5.0",
+    "node-gyp": "^11.4.2"
+  },
+  "dependencies": {
+    "windows-sdks": "file:../winsdk-electron/src/windows-sdks-1.0.0.tgz"
+  }
+}

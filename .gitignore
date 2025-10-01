@@ -1,0 +1,4 @@
+# Windows SDK packages and generated files
+.winsdk/
+node_modules/
+windows-ai-addon/build
