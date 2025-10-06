@@ -6,11 +6,45 @@ try {
     
     // Test SeverityLevel enum
     console.log('=== SeverityLevel Enum ===');
-    console.log('Minimum:', windowsAI.SeverityLevel.Minimum);
-    console.log('Low:', windowsAI.SeverityLevel.Low);
-    console.log('Medium:', windowsAI.SeverityLevel.Medium);
-    console.log('High:', windowsAI.SeverityLevel.High);
-    console.log('✓ SeverityLevel enum working\n');
+    
+    // Expected values based on the enum definition
+    const expectedSeverityValues = {
+        Minimum: 10,
+        Low: 11,
+        Medium: 12,
+        High: 13
+    };
+    
+    // Validate each constant
+    for (const [name, expectedValue] of Object.entries(expectedSeverityValues)) {
+        const actualValue = windowsAI.SeverityLevel[name];
+        if (actualValue !== expectedValue) {
+            throw new Error(`SeverityLevel.${name} expected ${expectedValue} but got ${actualValue}`);
+        }
+        console.log(`✓ ${name}: ${actualValue} (correct)`);
+    }
+    console.log('All SeverityLevel constants are correct!\n');
+    
+    // Test AIFeatureReadyState enum
+    console.log('=== AIFeatureReadyState Enum ===');
+    
+    // Expected values based on the enum definition
+    const expectedReadyStateValues = {
+        Ready: 0,
+        NotReady: 1,
+        NotSupportedOnCurrentSystem: 2,
+        DisabledByUser: 3
+    };
+    
+    // Validate each constant
+    for (const [name, expectedValue] of Object.entries(expectedReadyStateValues)) {
+        const actualValue = windowsAI.AIFeatureReadyState[name];
+        if (actualValue !== expectedValue) {
+            throw new Error(`AIFeatureReadyState.${name} expected ${expectedValue} but got ${actualValue}`);
+        }
+        console.log(`✓ ${name}: ${actualValue} (correct)`);
+    }
+    console.log('All AIFeatureReadyState constants are correct!\n');
     
     // Test ImageContentFilterSeverity
     console.log('=== ImageContentFilterSeverity ===');
@@ -27,12 +61,21 @@ try {
     console.log('RacyContentLevel:', imageSeverity.RacyContentLevel);
     console.log('ViolentContentLevel:', imageSeverity.ViolentContentLevel);
     
-    // Test setting properties
+    // Test setting properties and validate they're set correctly
     imageSeverity.AdultContentLevel = windowsAI.SeverityLevel.High;
     imageSeverity.GoryContentLevel = windowsAI.SeverityLevel.Low;
     console.log('✓ Set ImageContentFilterSeverity properties');
-    console.log('Updated AdultContentLevel:', imageSeverity.AdultContentLevel);
-    console.log('Updated GoryContentLevel:', imageSeverity.GoryContentLevel);
+    
+    // Validate the values were set correctly
+    if (imageSeverity.AdultContentLevel !== windowsAI.SeverityLevel.High) {
+        throw new Error(`AdultContentLevel expected ${windowsAI.SeverityLevel.High} but got ${imageSeverity.AdultContentLevel}`);
+    }
+    if (imageSeverity.GoryContentLevel !== windowsAI.SeverityLevel.Low) {
+        throw new Error(`GoryContentLevel expected ${windowsAI.SeverityLevel.Low} but got ${imageSeverity.GoryContentLevel}`);
+    }
+    
+    console.log(`✓ Validated AdultContentLevel: ${imageSeverity.AdultContentLevel} (High)`);
+    console.log(`✓ Validated GoryContentLevel: ${imageSeverity.GoryContentLevel} (Low)`);
     console.log('✓ ImageContentFilterSeverity working correctly\n');
     
     // Test TextContentFilterSeverity
@@ -50,12 +93,21 @@ try {
     console.log('Sexual:', textSeverity.Sexual);
     console.log('Violent:', textSeverity.Violent);
     
-    // Test setting properties
+    // Test setting properties and validate they're set correctly
     textSeverity.Hate = windowsAI.SeverityLevel.Medium;
     textSeverity.Violent = windowsAI.SeverityLevel.High;
     console.log('✓ Set TextContentFilterSeverity properties');
-    console.log('Updated Hate:', textSeverity.Hate);
-    console.log('Updated Violent:', textSeverity.Violent);
+    
+    // Validate the values were set correctly
+    if (textSeverity.Hate !== windowsAI.SeverityLevel.Medium) {
+        throw new Error(`Hate expected ${windowsAI.SeverityLevel.Medium} but got ${textSeverity.Hate}`);
+    }
+    if (textSeverity.Violent !== windowsAI.SeverityLevel.High) {
+        throw new Error(`Violent expected ${windowsAI.SeverityLevel.High} but got ${textSeverity.Violent}`);
+    }
+    
+    console.log(`✓ Validated Hate: ${textSeverity.Hate} (Medium)`);
+    console.log(`✓ Validated Violent: ${textSeverity.Violent} (High)`);
     console.log('✓ TextContentFilterSeverity working correctly\n');
     
     // Test ContentFilterOptions with subclasses

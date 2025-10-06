@@ -1,5 +1,6 @@
 #include <napi.h>
 #include "LanguageModelProjections.h"
+#include "ContentSeverity.h"
 
 using namespace winrt;
 using namespace Microsoft::Windows::AI;

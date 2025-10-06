@@ -6,14 +6,27 @@ async function testResponseResult() {
     try {
         // Test the exported constants first
         console.log('0. Testing LanguageModelResponseStatus constants:');
-        console.log('Complete:', LanguageModelResponseStatus.Complete);
-        console.log('InProgress:', LanguageModelResponseStatus.InProgress);
-        console.log('BlockedByPolicy:', LanguageModelResponseStatus.BlockedByPolicy);
-        console.log('PromptLargerThanContext:', LanguageModelResponseStatus.PromptLargerThanContext);
-        console.log('PromptBlockedByContentModeration:', LanguageModelResponseStatus.PromptBlockedByContentModeration);
-        console.log('ResponseBlockedByContentModeration:', LanguageModelResponseStatus.ResponseBlockedByContentModeration);
-        console.log('Error:', LanguageModelResponseStatus.Error);
-        console.log('');
+        
+        // Expected values based on the enum definition
+        const expectedValues = {
+            Complete: 0,
+            InProgress: 1,
+            BlockedByPolicy: 2,
+            PromptLargerThanContext: 3,
+            PromptBlockedByContentModeration: 4,
+            ResponseBlockedByContentModeration: 5,
+            Error: 6
+        };
+        
+        // Validate each constant
+        for (const [name, expectedValue] of Object.entries(expectedValues)) {
+            const actualValue = LanguageModelResponseStatus[name];
+            if (actualValue !== expectedValue) {
+                throw new Error(`LanguageModelResponseStatus.${name} expected ${expectedValue} but got ${actualValue}`);
+            }
+            console.log(`✓ ${name}: ${actualValue} (correct)`);
+        }
+        console.log('All LanguageModelResponseStatus constants are correct!\n');
         
         // Create the model
         console.log('Creating model...');
@@ -27,7 +40,15 @@ async function testResponseResult() {
         console.log('Result constructor:', result.constructor.name);
         console.log('Result text:', result.text);
         console.log('Result status (numeric):', result.status);
-        console.log('Result status meaning:', result.status === LanguageModelResponseStatus.Complete ? 'Complete' : 'Other');
+        
+        // Validate status is a valid enum value
+        const validStatuses = Object.values(expectedValues);
+        if (!validStatuses.includes(result.status)) {
+            throw new Error(`Invalid status value ${result.status}. Expected one of: ${validStatuses.join(', ')}`);
+        }
+        
+        const statusName = Object.keys(expectedValues).find(key => expectedValues[key] === result.status);
+        console.log(`✓ Result status: ${statusName} (${result.status}) - valid enum value`);
         console.log('Result extendedError:', result.extendedError);
         console.log('');
         
@@ -45,7 +66,14 @@ async function testResponseResult() {
         console.log('\n\nFinal result type:', typeof finalResult);
         console.log('Final result text:', finalResult.text);
         console.log('Final result status (numeric):', finalResult.status);
-        console.log('Final result status meaning:', finalResult.status === LanguageModelResponseStatus.Complete ? 'Complete' : 'Other');
+        
+        // Validate final result status is a valid enum value
+        if (!validStatuses.includes(finalResult.status)) {
+            throw new Error(`Invalid final result status value ${finalResult.status}. Expected one of: ${validStatuses.join(', ')}`);
+        }
+        
+        const finalStatusName = Object.keys(expectedValues).find(key => expectedValues[key] === finalResult.status);
+        console.log(`✓ Final result status: ${finalStatusName} (${finalResult.status}) - valid enum value`);
         console.log('Final result extendedError:', finalResult.extendedError);
         console.log('Progress text collected:', progressText);
         console.log('');

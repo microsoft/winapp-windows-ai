@@ -6,10 +6,23 @@ try {
     
     // Test AIFeatureReadyResultState enum
     console.log('=== AIFeatureReadyResultState Enum ===');
-    console.log('InProgress:', windowsAI.AIFeatureReadyResultState.InProgress);
-    console.log('Success:', windowsAI.AIFeatureReadyResultState.Success);
-    console.log('Failure:', windowsAI.AIFeatureReadyResultState.Failure);
-    console.log('✓ AIFeatureReadyResultState enum working\n');
+    
+    // Expected values based on the enum definition
+    const expectedValues = {
+        InProgress: 0,
+        Success: 1,
+        Failure: 2
+    };
+    
+    // Validate each constant
+    for (const [name, expectedValue] of Object.entries(expectedValues)) {
+        const actualValue = windowsAI.AIFeatureReadyResultState[name];
+        if (actualValue !== expectedValue) {
+            throw new Error(`AIFeatureReadyResultState.${name} expected ${expectedValue} but got ${actualValue}`);
+        }
+        console.log(`✓ ${name}: ${actualValue} (correct)`);
+    }
+    console.log('All AIFeatureReadyResultState constants are correct!\n');
     
     // Test EnsureReadyAsync with progress and AIFeatureReadyResult
     console.log('=== Testing EnsureReadyAsync ===');
@@ -46,18 +59,16 @@ try {
                 console.log('ErrorDisplayText:', result.ErrorDisplayText);
                 console.log('ExtendedError:', result.ExtendedError);
                 
-                // Interpret status
-                const statusValue = result.Status;
-                let statusName = 'Unknown';
-                if (statusValue === windowsAI.AIFeatureReadyResultState.InProgress) {
-                    statusName = 'InProgress';
-                } else if (statusValue === windowsAI.AIFeatureReadyResultState.Success) {
-                    statusName = 'Success';
-                } else if (statusValue === windowsAI.AIFeatureReadyResultState.Failure) {
-                    statusName = 'Failure';
+                // Validate status is a valid enum value
+                const validStatuses = Object.values(expectedValues);
+                if (!validStatuses.includes(result.Status)) {
+                    throw new Error(`Invalid AIFeatureReadyResult status value ${result.Status}. Expected one of: ${validStatuses.join(', ')}`);
                 }
                 
-                console.log(`Status interpretation: ${statusName} (${statusValue})`);
+                // Interpret status
+                const statusValue = result.Status;
+                let statusName = Object.keys(expectedValues).find(key => expectedValues[key] === statusValue);
+                console.log(`✓ Status: ${statusName} (${statusValue}) - valid enum value`);
                 
                 if (statusValue === windowsAI.AIFeatureReadyResultState.Success) {
                     console.log('✅ Language model is ready!');
