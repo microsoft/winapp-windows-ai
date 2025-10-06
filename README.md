@@ -187,12 +187,6 @@ async function generateText() {
     // Create language model instance
     const model = await windowsAI.LanguageModel.CreateAsync();
 
-    // Create language model options (optional)
-    const options = new windowsAI.LanguageModelOptions();
-    options.Temperature = 0.7;
-    options.TopP = 0.9;
-    options.TopK = 40;
-
     // Generate response
     const result = await model.GenerateResponseAsync(
       "What is artificial intelligence?",
@@ -213,6 +207,58 @@ async function generateText() {
 }
 
 generateText();
+```
+
+### Streaming Text Generation with Progress (with Options)
+
+```javascript
+const windowsAI = require("./windows-ai-addon/build/Release/windows-ai-addon.node");
+
+async function generateTextWithProgress(progressCallback) {
+  try {
+    // Ensure AI is ready
+    const readyResult = await windowsAI.LanguageModel.EnsureReadyAsync();
+    if (readyResult.Status !== windowsAI.AIFeatureReadyResultState.Success) {
+      console.log("AI not ready:", readyResult.ErrorDisplayText);
+      return;
+    }
+
+    // Create language model instance
+    const model = await windowsAI.LanguageModel.CreateAsync();
+
+    // Create options
+    const options = new windowsAI.LanguageModelOptions();
+    options.Temperature = 0.8;
+    options.TopP = 0.95;
+
+    // Start generation with progress tracking
+    const prompt = "What is artificial intelligence?";
+    const generationPromise = model.GenerateResponseAsync(prompt, options);
+
+    // Set up progress handler to stream partial results
+    generationPromise.progress((error, progressText) => {
+      if (error) {
+        console.error("Progress error:", error);
+        return;
+      }
+
+      progressResult.progress((sender, progress) => {
+        progressCallback(progress); // Callback to caller to process text stream
+      });
+    });
+
+    const finalResult = await generationPromise;
+
+    if (finalResult.Status === windowsAI.LanguageModelResponseStatus.Complete) {
+      console.log("\n=== Final Complete Text ===");
+      console.log(finalResult.Text);
+    } else {
+      console.log("Generation ended with status:", finalResult.Status);
+    }
+  } catch (error) {
+    console.error("Error during streaming generation:", error);
+  }
+}
 ```
 
 ### Content Safety Configuration
