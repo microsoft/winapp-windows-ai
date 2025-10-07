@@ -411,12 +411,12 @@ Napi::Value MyLanguageModel::MyCreateAsync(const Napi::CallbackInfo& info) {
                         }
                         
                         auto persistentModel = std::make_shared<LanguageModel>(std::move(languageModel));
-                        auto external = Napi::External<std::shared_ptr<LanguageModel>>::New(env, 
-                            new std::shared_ptr<LanguageModel>(persistentModel),
-                            [](Napi::Env env, std::shared_ptr<LanguageModel>* data) {
-                                delete data;
+                        auto external = Napi::External<LanguageModel>::New(env, 
+                            persistentModel.get(),
+                            [persistentModel](Napi::Env env, LanguageModel* data) {
+                                // persistentModel will be destroyed here, releasing the WinRT object
                             });
-                        
+
                         auto constructor = env.GetInstanceData<Napi::FunctionReference>();
                         if (!constructor) {
                             deferred.Reject(Napi::Error::New(env, "Constructor not found in instance data").Value());
@@ -531,8 +531,8 @@ MyLanguageModel::MyLanguageModel(const Napi::CallbackInfo& info) : Napi::ObjectW
         return;
     }
     
-    auto external = info[0].As<Napi::External<std::shared_ptr<LanguageModel>>>();
-    m_languagemodel = *external.Data();
+    auto external = info[0].As<Napi::External<LanguageModel>>();
+    m_languagemodel = external.Data();
 }
 
 Napi::Value MyLanguageModel::MyGenerateResponseAsync(const Napi::CallbackInfo& info) {

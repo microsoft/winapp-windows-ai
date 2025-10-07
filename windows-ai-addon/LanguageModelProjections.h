@@ -93,7 +93,7 @@ public:
     MyLanguageModel(const Napi::CallbackInfo& info);
 
 private:
-    std::shared_ptr<LanguageModel> m_languagemodel;
+    LanguageModel* m_languagemodel;
     
     Napi::Value MyGenerateResponseAsync(const Napi::CallbackInfo& info);
 };
