@@ -2,3 +2,4 @@
 .winsdk/
 node_modules/
 windows-ai-addon/build
+*.tgz

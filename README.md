@@ -52,6 +52,12 @@ yarn winsdk restore
 yarn build-windows-ai-addon
 ```
 
+### 5. Locally Package Addon
+
+```bash
+npm pack
+```
+
 ## Supported APIs
 
 ### Core Classes
