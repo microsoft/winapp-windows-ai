@@ -24,6 +24,8 @@ class MyImageContentFilterSeverity;
 class MyTextContentFilterSeverity;
 class MyAIFeatureReadyResult;
 class MyLanguageModel;
+class MyConversationItem;
+class MyTextSummarizer;
 
 // Wrapper for LanguageModelResponseResult
 class MyLanguageModelResponseResult : public Napi::ObjectWrap<MyLanguageModelResponseResult> {
@@ -92,9 +94,44 @@ public:
     static Napi::Value MyEnsureReadyAsync(const Napi::CallbackInfo& info);
     
     MyLanguageModel(const Napi::CallbackInfo& info);
+    LanguageModel* GetLanguageModel() const { return m_languagemodel; }
 
 private:
     LanguageModel* m_languagemodel;
     
     Napi::Value MyGenerateResponseAsync(const Napi::CallbackInfo& info);
+};
+
+// Wrapper for ConversationItem
+class MyConversationItem : public Napi::ObjectWrap<MyConversationItem> {
+public:
+    static Napi::FunctionReference constructor;
+    static Napi::Object Init(Napi::Env env, Napi::Object exports);
+    
+    MyConversationItem(const Napi::CallbackInfo& info);
+    ConversationItem GetConversationItem() const { return m_item; }
+
+private:
+    ConversationItem m_item;
+    
+    Napi::Value MyGetMessage(const Napi::CallbackInfo& info);
+    void MySetMessage(const Napi::CallbackInfo& info, const Napi::Value& value);
+    Napi::Value MyGetParticipant(const Napi::CallbackInfo& info);
+    void MySetParticipant(const Napi::CallbackInfo& info, const Napi::Value& value);
+};
+
+// Wrapper for TextSummarizer
+class MyTextSummarizer : public Napi::ObjectWrap<MyTextSummarizer> {
+public:
+    static Napi::FunctionReference constructor;
+    static Napi::Object Init(Napi::Env env, Napi::Object exports);
+    
+    MyTextSummarizer(const Napi::CallbackInfo& info);
+private:
+    std::shared_ptr<TextSummarizer> m_summarizer;
+    
+    Napi::Value MySummarizeAsync(const Napi::CallbackInfo& info);
+    Napi::Value MySummarizeConversationAsync(const Napi::CallbackInfo& info);
+    Napi::Value MySummarizeParagraphAsync(const Napi::CallbackInfo& info);
+    Napi::Value MyIsPromptLargerThanContext(const Napi::CallbackInfo& info);
 };

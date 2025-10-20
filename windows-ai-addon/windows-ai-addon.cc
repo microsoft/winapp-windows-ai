@@ -79,6 +79,8 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
     exports = MyImageContentFilterSeverity::Init(env, exports);
     exports = MyTextContentFilterSeverity::Init(env, exports);
     exports = MyAIFeatureReadyResult::Init(env, exports);
+    exports = MyConversationItem::Init(env, exports);
+    exports = MyTextSummarizer::Init(env, exports);
     
     exports = MyImageDescriptionGenerator::Init(env, exports);
     exports = MyImageDescriptionResult::Init(env, exports);

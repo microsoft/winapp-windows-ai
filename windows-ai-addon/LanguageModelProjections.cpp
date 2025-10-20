@@ -4,6 +4,7 @@
 #include <shobjidl_core.h>
 #include <windows.h>
 #include <winrt/Windows.Data.Xml.Dom.h>
+#include <winrt/Windows.Foundation.Collections.h>
 #include <cstdlib>
 
 using namespace Windows::Data::Xml::Dom;
@@ -12,6 +13,8 @@ using namespace Windows::Data::Xml::Dom;
 Napi::FunctionReference MyLanguageModelResponseResult::constructor;
 Napi::FunctionReference MyAIFeatureReadyResult::constructor;
 Napi::FunctionReference MyLanguageModel::constructor;
+Napi::FunctionReference MyConversationItem::constructor;
+Napi::FunctionReference MyTextSummarizer::constructor;
 
 // MyLanguageModelResponseResult Implementation
 Napi::Object MyLanguageModelResponseResult::Init(Napi::Env env, Napi::Object exports) {
@@ -598,5 +601,424 @@ Napi::Value MyLanguageModel::MyGenerateResponseAsync(const Napi::CallbackInfo& i
     } catch (...) {
         deferred.Reject(Napi::Error::New(env, "Unknown error occurred in EnsureReadyAsync").Value());
         return progressPromise.GetPromiseObject();
+    }
+}
+
+// MyConversationItem Implementation
+Napi::Object MyConversationItem::Init(Napi::Env env, Napi::Object exports) {
+    Napi::Function func = DefineClass(env, "ConversationItem", {
+        InstanceAccessor("Message", &MyConversationItem::MyGetMessage, &MyConversationItem::MySetMessage),
+        InstanceAccessor("Participant", &MyConversationItem::MyGetParticipant, &MyConversationItem::MySetParticipant)
+    });
+
+    constructor = Napi::Persistent(func);
+    exports.Set("ConversationItem", func);
+    return exports;
+}
+
+MyConversationItem::MyConversationItem(const Napi::CallbackInfo& info) : Napi::ObjectWrap<MyConversationItem>(info) {
+    if (info.Length() == 1 && info[0].IsExternal()) {
+        auto external = info[0].As<Napi::External<ConversationItem>>();
+        m_item = *external.Data();
+    } else {
+        m_item = ConversationItem();
+    }
+}
+
+Napi::Value MyConversationItem::MyGetMessage(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    try {
+        auto message = m_item.Message();
+        return Napi::String::New(env, winrt::to_string(message));
+    } catch (const winrt::hresult_error& ex) {
+        Napi::Error::New(env, winrt::to_string(ex.message())).ThrowAsJavaScriptException();
+        return env.Null();
+    }
+}
+
+void MyConversationItem::MySetMessage(const Napi::CallbackInfo& info, const Napi::Value& value) {
+    Napi::Env env = info.Env();
+    try {
+        if (!value.IsString()) {
+            Napi::TypeError::New(env, "Message must be a string").ThrowAsJavaScriptException();
+            return;
+        }
+        std::string message = value.As<Napi::String>().Utf8Value();
+        m_item.Message(winrt::to_hstring(message));
+    } catch (const winrt::hresult_error& ex) {
+        Napi::Error::New(env, winrt::to_string(ex.message())).ThrowAsJavaScriptException();
+    }
+}
+
+Napi::Value MyConversationItem::MyGetParticipant(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    try {
+        auto participant = m_item.Participant();
+        return Napi::String::New(env, winrt::to_string(participant));
+    } catch (const winrt::hresult_error& ex) {
+        Napi::Error::New(env, winrt::to_string(ex.message())).ThrowAsJavaScriptException();
+        return env.Null();
+    }
+}
+
+void MyConversationItem::MySetParticipant(const Napi::CallbackInfo& info, const Napi::Value& value) {
+    Napi::Env env = info.Env();
+    try {
+        if (!value.IsString()) {
+            Napi::TypeError::New(env, "Participant must be a string").ThrowAsJavaScriptException();
+            return;
+        }
+        std::string participant = value.As<Napi::String>().Utf8Value();
+        m_item.Participant(winrt::to_hstring(participant));
+    } catch (const winrt::hresult_error& ex) {
+        Napi::Error::New(env, winrt::to_string(ex.message())).ThrowAsJavaScriptException();
+    }
+}
+
+// MyTextSummarizer Implementation
+
+Napi::Object MyTextSummarizer::Init(Napi::Env env, Napi::Object exports) {
+    Napi::Function func = DefineClass(env, "TextSummarizer", {
+        InstanceMethod("SummarizeAsync", &MyTextSummarizer::MySummarizeAsync),
+        InstanceMethod("SummarizeConversationAsync", &MyTextSummarizer::MySummarizeConversationAsync),
+        InstanceMethod("SummarizeParagraphAsync", &MyTextSummarizer::MySummarizeParagraphAsync),
+        InstanceMethod("IsPromptLargerThanContext", &MyTextSummarizer::MyIsPromptLargerThanContext)
+    });
+
+    constructor = Napi::Persistent(func);
+    exports.Set("TextSummarizer", func);
+    return exports;
+}
+
+MyTextSummarizer::MyTextSummarizer(const Napi::CallbackInfo& info) : Napi::ObjectWrap<MyTextSummarizer>(info) {
+    if (info.Length() == 0) {
+        Napi::Error::New(info.Env(), "TextSummarizer constructor requires a LanguageModel instance").ThrowAsJavaScriptException();
+        return;
+    }
+    
+    // Check if first parameter is an External<TextSummarizer> (for internal use)
+    if (info[0].IsExternal()) {
+        auto external = info[0].As<Napi::External<TextSummarizer>>();
+        m_summarizer = std::make_shared<TextSummarizer>(*external.Data());
+        return;
+    }
+    
+    // Check if first parameter is a MyLanguageModel instance (for direct instantiation)
+    if (info[0].IsObject()) {
+        auto languageModelObj = info[0].As<Napi::Object>();
+        auto languageModelWrapper = Napi::ObjectWrap<MyLanguageModel>::Unwrap(languageModelObj);
+        if (languageModelWrapper) {
+            try {
+                auto languageModel = languageModelWrapper->GetLanguageModel();
+                if (languageModel) {
+                    m_summarizer = std::make_shared<TextSummarizer>(*languageModel);
+                    return;
+                }
+            } catch (const winrt::hresult_error& ex) {
+                std::string errorMsg = "Failed to create TextSummarizer: " + winrt::to_string(ex.message());
+                Napi::Error::New(info.Env(), errorMsg).ThrowAsJavaScriptException();
+                return;
+            } catch (const std::exception& ex) {
+                std::string errorMsg = "Failed to create TextSummarizer: " + std::string(ex.what());
+                Napi::Error::New(info.Env(), errorMsg).ThrowAsJavaScriptException();
+                return;
+            } catch (...) {
+                Napi::Error::New(info.Env(), "Unknown error creating TextSummarizer").ThrowAsJavaScriptException();
+                return;
+            }
+        }
+    }
+    
+    Napi::Error::New(info.Env(), "TextSummarizer constructor requires a valid LanguageModel instance").ThrowAsJavaScriptException();
+}
+
+Napi::Value MyTextSummarizer::MySummarizeAsync(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    
+    if (info.Length() < 1 || !info[0].IsString()) {
+        Napi::TypeError::New(env, "SummarizeAsync requires a string parameter").ThrowAsJavaScriptException();
+        return env.Null();
+    }
+    
+    auto deferred = Napi::Promise::Deferred::New(env);
+    auto tsfn = Napi::ThreadSafeFunction::New(env, Napi::Function::New(env, [](const Napi::CallbackInfo&) {}), "SummarizeAsync", 0, 1);
+    auto tsfn_guard = std::shared_ptr<void>(nullptr, [tsfn](void*) mutable { tsfn.Release(); });
+    auto progressPromise = ProgressPromise::Create(env, deferred);
+    auto progressTsfn = progressPromise.GetProgressTsfn();
+
+    try {
+        std::string text = info[0].As<Napi::String>().Utf8Value();
+        winrt::hstring wText = winrt::to_hstring(text);
+        
+        auto asyncOp = m_summarizer->SummarizeAsync(wText);
+        
+        asyncOp.Progress([progressTsfn](auto const&, auto const& progressText) {
+            if (progressTsfn && *progressTsfn) {
+                auto progressStr = winrt::to_string(progressText);
+                (*progressTsfn)->NonBlockingCall([progressStr](Napi::Env env, Napi::Function jsCallback) {
+                    try {
+                        jsCallback.Call({ env.Null(), Napi::String::New(env, progressStr) });
+                    } catch (...) {}
+                });
+            }
+        });
+        
+        asyncOp.Completed([deferred, tsfn, tsfn_guard](auto const& sender, auto const& status) mutable {
+            tsfn.BlockingCall([deferred, sender, status](Napi::Env env, Napi::Function) {
+                try {
+                    if (status == winrt::Windows::Foundation::AsyncStatus::Completed) {
+                        auto result = sender.GetResults();
+                        auto external = Napi::External<LanguageModelResponseResult>::New(env, &result);
+                        auto resultWrapper = MyLanguageModelResponseResult::constructor.New({ external });
+                        deferred.Resolve(resultWrapper);
+                    } else {
+                        deferred.Reject(Napi::Error::New(env, "SummarizeAsync was cancelled or failed").Value());
+                    }
+                } catch (const winrt::hresult_error& ex) {
+                    deferred.Reject(Napi::Error::New(env, winrt::to_string(ex.message())).Value());
+                } catch (const std::exception& ex) {
+                    deferred.Reject(Napi::Error::New(env, ex.what()).Value());
+                } catch (...) {
+                    deferred.Reject(Napi::Error::New(env, "Unknown error occurred in SummarizeAsync").Value());
+                }
+            });
+        });
+        
+        return progressPromise.GetPromiseObject();
+        
+    } catch (const winrt::hresult_error& ex) {
+        deferred.Reject(Napi::Error::New(env, winrt::to_string(ex.message())).Value());
+        return progressPromise.GetPromiseObject();
+    } catch (const std::exception& ex) {
+        deferred.Reject(Napi::Error::New(env, ex.what()).Value());
+        return progressPromise.GetPromiseObject();
+    } catch (...) {
+        deferred.Reject(Napi::Error::New(env, "Unknown error occurred in SummarizeAsync").Value());
+        return progressPromise.GetPromiseObject();
+    }
+}
+
+Napi::Value MyTextSummarizer::MySummarizeParagraphAsync(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    
+    if (info.Length() < 1 || !info[0].IsString()) {
+        Napi::TypeError::New(env, "SummarizeParagraphAsync requires a string parameter").ThrowAsJavaScriptException();
+        return env.Null();
+    }
+    
+    auto deferred = Napi::Promise::Deferred::New(env);
+    auto tsfn = Napi::ThreadSafeFunction::New(env, Napi::Function::New(env, [](const Napi::CallbackInfo&) {}), "SummarizeParagraphAsync", 0, 1);
+    auto tsfn_guard = std::shared_ptr<void>(nullptr, [tsfn](void*) mutable { tsfn.Release(); });
+    auto progressPromise = ProgressPromise::Create(env, deferred);
+    auto progressTsfn = progressPromise.GetProgressTsfn();
+
+    try {
+        std::string text = info[0].As<Napi::String>().Utf8Value();
+        winrt::hstring wText = winrt::to_hstring(text);
+        
+        auto asyncOp = m_summarizer->SummarizeParagraphAsync(wText);
+        
+        asyncOp.Progress([progressTsfn](auto const&, auto const& progressText) {
+            if (progressTsfn && *progressTsfn) {
+                auto progressStr = winrt::to_string(progressText);
+                (*progressTsfn)->NonBlockingCall([progressStr](Napi::Env env, Napi::Function jsCallback) {
+                    try {
+                        jsCallback.Call({ env.Null(), Napi::String::New(env, progressStr) });
+                    } catch (...) {}
+                });
+            }
+        });
+        
+        asyncOp.Completed([deferred, tsfn, tsfn_guard](auto const& sender, auto const& status) mutable {
+            tsfn.BlockingCall([deferred, sender, status](Napi::Env env, Napi::Function) {
+                try {
+                    if (status == winrt::Windows::Foundation::AsyncStatus::Completed) {
+                        auto result = sender.GetResults();
+                        auto external = Napi::External<LanguageModelResponseResult>::New(env, &result);
+                        auto resultWrapper = MyLanguageModelResponseResult::constructor.New({ external });
+                        deferred.Resolve(resultWrapper);
+                    } else {
+                        deferred.Reject(Napi::Error::New(env, "SummarizeParagraphAsync was cancelled or failed").Value());
+                    }
+                } catch (const winrt::hresult_error& ex) {
+                    deferred.Reject(Napi::Error::New(env, winrt::to_string(ex.message())).Value());
+                } catch (const std::exception& ex) {
+                    deferred.Reject(Napi::Error::New(env, ex.what()).Value());
+                } catch (...) {
+                    deferred.Reject(Napi::Error::New(env, "Unknown error occurred in SummarizeParagraphAsync").Value());
+                }
+            });
+        });
+        
+        return progressPromise.GetPromiseObject();
+        
+    } catch (const winrt::hresult_error& ex) {
+        deferred.Reject(Napi::Error::New(env, winrt::to_string(ex.message())).Value());
+        return progressPromise.GetPromiseObject();
+    } catch (const std::exception& ex) {
+        deferred.Reject(Napi::Error::New(env, ex.what()).Value());
+        return progressPromise.GetPromiseObject();
+    } catch (...) {
+        deferred.Reject(Napi::Error::New(env, "Unknown error occurred in SummarizeParagraphAsync").Value());
+        return progressPromise.GetPromiseObject();
+    }
+}
+
+Napi::Value MyTextSummarizer::MySummarizeConversationAsync(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    
+    if (info.Length() < 2) {
+        Napi::TypeError::New(env, "SummarizeConversationAsync requires messages array and options parameters").ThrowAsJavaScriptException();
+        return env.Null();
+    }
+    
+    if (!info[0].IsArray()) {
+        Napi::TypeError::New(env, "First parameter must be an array of ConversationItem objects").ThrowAsJavaScriptException();
+        return env.Null();
+    }
+    
+    auto deferred = Napi::Promise::Deferred::New(env);
+    auto tsfn = Napi::ThreadSafeFunction::New(env, Napi::Function::New(env, [](const Napi::CallbackInfo&) {}), "SummarizeConversationAsync", 0, 1);
+    auto tsfn_guard = std::shared_ptr<void>(nullptr, [tsfn](void*) mutable { tsfn.Release(); });
+    auto progressPromise = ProgressPromise::Create(env, deferred);
+    auto progressTsfn = progressPromise.GetProgressTsfn();
+
+    try {
+        auto messagesArray = info[0].As<Napi::Array>();
+        auto messages = winrt::single_threaded_vector<ConversationItem>();
+        
+        for (uint32_t i = 0; i < messagesArray.Length(); i++) {
+            auto itemValue = messagesArray.Get(i);
+            if (itemValue.IsObject()) {
+                auto itemObj = itemValue.As<Napi::Object>();
+                
+                auto conversationItemWrapper = Napi::ObjectWrap<MyConversationItem>::Unwrap(itemObj);
+                if (conversationItemWrapper) {
+                    messages.Append(conversationItemWrapper->GetConversationItem());
+                }
+            }
+        }
+        
+        ConversationSummaryOptions options;
+        if (info[1].IsObject()) {
+            auto optionsObj = info[1].As<Napi::Object>();
+            if (optionsObj.Has("includeMessageCitations") && optionsObj.Get("includeMessageCitations").IsBoolean()) {
+                options.IncludeMessageCitations(optionsObj.Get("includeMessageCitations").As<Napi::Boolean>().Value());
+            }
+            if (optionsObj.Has("includeParticipantAttribution") && optionsObj.Get("includeParticipantAttribution").IsBoolean()) {
+                options.IncludeParticipantAttribution(optionsObj.Get("includeParticipantAttribution").As<Napi::Boolean>().Value());
+            }
+        }
+        
+        auto messagesView = messages.GetView();
+        auto asyncOp = m_summarizer->SummarizeConversationAsync(messagesView, options);
+        
+        asyncOp.Progress([progressTsfn](auto const&, auto const& progressText) {
+            if (progressTsfn && *progressTsfn) {
+                auto progressStr = winrt::to_string(progressText);
+                (*progressTsfn)->NonBlockingCall([progressStr](Napi::Env env, Napi::Function jsCallback) {
+                    try {
+                        jsCallback.Call({ env.Null(), Napi::String::New(env, progressStr) });
+                    } catch (...) {}
+                });
+            }
+        });
+        
+        asyncOp.Completed([deferred, tsfn, tsfn_guard](auto const& sender, auto const& status) mutable {
+            tsfn.BlockingCall([deferred, sender, status](Napi::Env env, Napi::Function) {
+                try {
+                    if (status == winrt::Windows::Foundation::AsyncStatus::Completed) {
+                        auto result = sender.GetResults();
+                        auto external = Napi::External<LanguageModelResponseResult>::New(env, &result);
+                        auto resultWrapper = MyLanguageModelResponseResult::constructor.New({ external });
+                        deferred.Resolve(resultWrapper);
+                    } else {
+                        deferred.Reject(Napi::Error::New(env, "SummarizeConversationAsync was cancelled or failed").Value());
+                    }
+                } catch (const winrt::hresult_error& ex) {
+                    deferred.Reject(Napi::Error::New(env, winrt::to_string(ex.message())).Value());
+                } catch (const std::exception& ex) {
+                    deferred.Reject(Napi::Error::New(env, ex.what()).Value());
+                } catch (...) {
+                    deferred.Reject(Napi::Error::New(env, "Unknown error occurred in SummarizeConversationAsync").Value());
+                }
+            });
+        });
+        
+        return progressPromise.GetPromiseObject();
+        
+    } catch (const winrt::hresult_error& ex) {
+        deferred.Reject(Napi::Error::New(env, winrt::to_string(ex.message())).Value());
+        return progressPromise.GetPromiseObject();
+    } catch (const std::exception& ex) {
+        deferred.Reject(Napi::Error::New(env, ex.what()).Value());
+        return progressPromise.GetPromiseObject();
+    } catch (...) {
+        deferred.Reject(Napi::Error::New(env, "Unknown error occurred in SummarizeConversationAsync").Value());
+        return progressPromise.GetPromiseObject();
+    }
+}
+
+Napi::Value MyTextSummarizer::MyIsPromptLargerThanContext(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    
+    if (info.Length() < 1) {
+        Napi::TypeError::New(env, "IsPromptLargerThanContext requires at least one parameter").ThrowAsJavaScriptException();
+        return env.Null();
+    }
+    
+    try {
+        uint64_t cutoffPosition = 0;
+        bool result = false;
+        
+        if (info[0].IsArray() && info.Length() >= 2) {
+            auto messagesArray = info[0].As<Napi::Array>();
+            std::vector<ConversationItem> messages;
+            
+            for (uint32_t i = 0; i < messagesArray.Length(); i++) {
+                auto itemValue = messagesArray.Get(i);
+                if (itemValue.IsObject()) {
+                    auto itemObj = itemValue.As<Napi::Object>();
+                    
+                    auto conversationItemWrapper = Napi::ObjectWrap<MyConversationItem>::Unwrap(itemObj);
+                    if (conversationItemWrapper) {
+                        messages.push_back(conversationItemWrapper->GetConversationItem());
+                    }
+                }
+            }
+            
+            ConversationSummaryOptions options;
+            if (info[1].IsObject()) {
+                auto optionsObj = info[1].As<Napi::Object>();
+                if (optionsObj.Has("includeMessageCitations") && optionsObj.Get("includeMessageCitations").IsBoolean()) {
+                    options.IncludeMessageCitations(optionsObj.Get("includeMessageCitations").As<Napi::Boolean>().Value());
+                }
+                if (optionsObj.Has("includeParticipantAttribution") && optionsObj.Get("includeParticipantAttribution").IsBoolean()) {
+                    options.IncludeParticipantAttribution(optionsObj.Get("includeParticipantAttribution").As<Napi::Boolean>().Value());
+                }
+            }
+            
+            winrt::array_view<ConversationItem const> messagesView(messages);
+            result = m_summarizer->IsPromptLargerThanContext(messagesView, options, cutoffPosition);
+        } 
+        else {
+            Napi::TypeError::New(env, "Invalid parameters. Expected either (string) or (ConversationItem[], ConversationSummaryOptions)").ThrowAsJavaScriptException();
+            return env.Null();
+        }
+        
+        auto resultObj = Napi::Object::New(env);
+        resultObj.Set("isLarger", Napi::Boolean::New(env, result));
+        resultObj.Set("cutoffPosition", Napi::BigInt::New(env, cutoffPosition));
+        return resultObj;
+        
+    } catch (const winrt::hresult_error& ex) {
+        Napi::Error::New(env, winrt::to_string(ex.message())).ThrowAsJavaScriptException();
+        return env.Null();
+    } catch (const std::exception& ex) {
+        Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
+        return env.Null();
+    } catch (...) {
+        Napi::Error::New(env, "Unknown error occurred in IsPromptLargerThanContext").ThrowAsJavaScriptException();
+        return env.Null();
     }
 }

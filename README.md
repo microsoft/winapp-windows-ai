@@ -8,6 +8,7 @@ This package wraps the Microsoft Windows AI APIs in a Node.js native addon, allo
 
 - Access local Language Models (LLMs)
 - Use Content Safety filtering features
+- Summarize text and conversations with AI
 - Generate image descriptions and captions
 - Perform optical character recognition (OCR) on images
 - Remove objects from images
@@ -100,6 +101,43 @@ Contains the result of a text generation operation.
 - `Text` (string) - The generated text response
 - `Status` (number) - Status code from LanguageModelResponseStatus enum
 - `ExtendedError` (string) - Extended error information if available
+
+#### `TextSummarizer`
+
+Main class for AI-powered text and conversation summarization.
+
+**Constructor:**
+
+- `new TextSummarizer(languageModel)` - Creates a TextSummarizer with the provided LanguageModel instance
+
+**Instance Methods:**
+
+- `SummarizeAsync(text)` - Asynchronously summarizes the provided text
+- `SummarizeParagraphAsync(text)` - Asynchronously summarizes a paragraph with paragraph-specific optimization
+- `SummarizeConversationAsync(messages, options)` - Asynchronously summarizes a conversation from an array of ConversationItem objects
+- `IsPromptLargerThanContext(messages, options)` - Checks if conversation prompt exceeds context window
+
+#### `ConversationItem`
+
+Represents a single message in a conversation for summarization.
+
+**Constructor:**
+
+- `new ConversationItem()` - Creates a new conversation item
+
+**Properties:**
+
+- `Message` (string) - The message content
+- `Participant` (string) - The participant who sent the message (e.g., "User", "Assistant", "Support")
+
+#### `ConversationSummaryOptions`
+
+Configuration options for conversation summarization.
+
+**Properties:**
+
+- `includeMessageCitations` (boolean) - Whether to include references to specific messages in the summary
+- `includeParticipantAttribution` (boolean) - Whether to attribute parts of the summary to specific participants
 
 #### `AIFeatureReadyResult`
 
@@ -305,7 +343,7 @@ Severity levels for different types of text content.
 ### Basic Language Model Usage
 
 ```javascript
-const windowsAI = require("./windows-ai-addon/build/Release/windows-ai-addon.node");
+const windowsAI = require("electron-windows-ai-addon");
 
 async function generateText() {
   try {
@@ -341,10 +379,224 @@ async function generateText() {
 generateText();
 ```
 
+### Text Summarization
+
+```javascript
+const windowsAI = require("electron-windows-ai-addon");
+
+async function summarizeText() {
+  try {
+    // Ensure AI is ready
+    const readyResult = await windowsAI.LanguageModel.EnsureReadyAsync();
+    if (readyResult.Status !== windowsAI.AIFeatureReadyResultState.Success) {
+      console.log("AI not ready:", readyResult.ErrorDisplayText);
+      return;
+    }
+
+    // Create language model and text summarizer
+    const model = await windowsAI.LanguageModel.CreateAsync();
+    const textSummarizer = new windowsAI.TextSummarizer(model);
+
+    // Text to summarize
+    const longText = `
+      Artificial intelligence (AI) is intelligence demonstrated by machines, 
+      in contrast to the natural intelligence displayed by humans and animals. 
+      Leading AI textbooks define the field as the study of "intelligent agents": 
+      any device that perceives its environment and takes actions that maximize 
+      its chance of successfully achieving its goals. Colloquially, the term 
+      "artificial intelligence" is often used to describe machines that mimic 
+      "cognitive" functions that humans associate with the human mind, such as 
+      "learning" and "problem solving".
+    `;
+
+    // Summarize the text
+    const result = await textSummarizer.SummarizeAsync(longText);
+
+    if (result.Status === windowsAI.LanguageModelResponseStatus.Complete) {
+      console.log("Original text length:", longText.length);
+      console.log("Summary:", result.Text);
+      console.log("Summary length:", result.Text.length);
+    } else {
+      console.log("Summarization failed with status:", result.Status);
+    }
+  } catch (error) {
+    console.error("Error:", error);
+  }
+}
+
+summarizeText();
+```
+
+### Conversation Summarization
+
+```javascript
+const windowsAI = require("electron-windows-ai-addon");
+
+async function summarizeConversation() {
+  try {
+    // Setup AI components
+    const readyResult = await windowsAI.LanguageModel.EnsureReadyAsync();
+    if (readyResult.Status !== windowsAI.AIFeatureReadyResultState.Success) {
+      console.log("AI not ready:", readyResult.ErrorDisplayText);
+      return;
+    }
+
+    const model = await windowsAI.LanguageModel.CreateAsync();
+    const textSummarizer = new windowsAI.TextSummarizer(model);
+
+    // Create conversation items
+    const conversation = [];
+
+    const item1 = new windowsAI.ConversationItem();
+    item1.Message =
+      "Hello, I'm having trouble with my computer. It keeps freezing when I try to open large files.";
+    item1.Participant = "User";
+    conversation.push(item1);
+
+    const item2 = new windowsAI.ConversationItem();
+    item2.Message =
+      "I'd be happy to help you with that. Can you tell me what type of files you're trying to open and how large they are?";
+    item2.Participant = "Support";
+    conversation.push(item2);
+
+    const item3 = new windowsAI.ConversationItem();
+    item3.Message =
+      "They're mostly video files, around 2-3 GB each. My computer has 8GB of RAM.";
+    item3.Participant = "User";
+    conversation.push(item3);
+
+    const item4 = new windowsAI.ConversationItem();
+    item4.Message =
+      "That could be a memory issue. Try closing other applications before opening large video files, and consider upgrading your RAM if this happens frequently.";
+    item4.Participant = "Support";
+    conversation.push(item4);
+
+    // Conversation summary options
+    const options = {
+      includeMessageCitations: true,
+      includeParticipantAttribution: true,
+    };
+
+    // Summarize the conversation
+    const result = await textSummarizer.SummarizeConversationAsync(
+      conversation,
+      options
+    );
+
+    if (result.Status === windowsAI.LanguageModelResponseStatus.Complete) {
+      console.log("Conversation Summary:", result.Text);
+    } else {
+      console.log(
+        "Conversation summarization failed with status:",
+        result.Status
+      );
+    }
+  } catch (error) {
+    console.error("Error:", error);
+  }
+}
+
+summarizeConversation();
+```
+
+### Paragraph Summarization with Progress Tracking
+
+```javascript
+const windowsAI = require("electron-windows-ai-addon");
+
+async function summarizeParagraphWithProgress() {
+  try {
+    const readyResult = await windowsAI.LanguageModel.EnsureReadyAsync();
+    if (readyResult.Status !== windowsAI.AIFeatureReadyResultState.Success) {
+      console.log("AI not ready:", readyResult.ErrorDisplayText);
+      return;
+    }
+
+    const model = await windowsAI.LanguageModel.CreateAsync();
+    const textSummarizer = new windowsAI.TextSummarizer(model);
+
+    const paragraph = `
+      Machine learning is a method of data analysis that automates analytical 
+      model building. It is a branch of artificial intelligence based on the 
+      idea that systems can learn from data, identify patterns and make 
+      decisions with minimal human intervention. Through algorithms and 
+      statistical models, machine learning systems improve their performance 
+      on a specific task through experience without being explicitly programmed.
+    `;
+
+    // Start summarization with progress tracking
+    const summarizationPromise =
+      textSummarizer.SummarizeParagraphAsync(paragraph);
+
+    // Track progress if supported
+    if (summarizationPromise.progress) {
+      summarizationPromise.progress((error, progressText) => {
+        if (error) {
+          console.error("Progress error:", error);
+          return;
+        }
+        console.log("Progress:", progressText);
+      });
+    }
+
+    const result = await summarizationPromise;
+
+    if (result.Status === windowsAI.LanguageModelResponseStatus.Complete) {
+      console.log("Paragraph Summary:", result.Text);
+    }
+  } catch (error) {
+    console.error("Error:", error);
+  }
+}
+
+summarizeParagraphWithProgress();
+```
+
+### Checking Prompt Context Size
+
+```javascript
+const windowsAI = require("electron-windows-ai-addon");
+
+async function checkConversationSize() {
+  try {
+    const model = await windowsAI.LanguageModel.CreateAsync();
+    const textSummarizer = new windowsAI.TextSummarizer(model);
+
+    // Create a conversation
+    const conversation = [
+      /* your conversation items */
+    ];
+    const options = {
+      includeMessageCitations: false,
+      includeParticipantAttribution: true,
+    };
+
+    // Check if the conversation is too large for the context window
+    const sizeCheck = textSummarizer.IsPromptLargerThanContext(
+      conversation,
+      options
+    );
+
+    console.log("Is conversation larger than context:", sizeCheck.isLarger);
+    console.log("Cutoff position:", sizeCheck.cutoffPosition);
+
+    if (sizeCheck.isLarger) {
+      console.log(
+        "Consider truncating the conversation or using a sliding window approach"
+      );
+    }
+  } catch (error) {
+    console.error("Error checking conversation size:", error);
+  }
+}
+
+checkConversationSize();
+```
+
 ### Streaming Text Generation with Progress (with Options)
 
 ```javascript
-const windowsAI = require("./windows-ai-addon/build/Release/windows-ai-addon.node");
+const windowsAI = require("electron-windows-ai-addon");
 
 async function generateTextWithProgress(progressCallback) {
   try {
@@ -396,7 +648,7 @@ async function generateTextWithProgress(progressCallback) {
 ### Content Safety Configuration
 
 ```javascript
-const windowsAI = require("./windows-ai-addon/build/Release/windows-ai-addon.node");
+const windowsAI = require("electron-windows-ai-addon");
 
 function setupContentFiltering() {
   // Create text content severity settings
@@ -430,7 +682,7 @@ function setupContentFiltering() {
 ### Checking AI Feature Availability
 
 ```javascript
-const windowsAI = require("./windows-ai-addon/build/Release/windows-ai-addon.node");
+const windowsAI = require("electron-windows-ai-addon");
 
 async function checkAIAvailability() {
   try {
@@ -569,7 +821,7 @@ recognizeTextFromImage();
 ### Synchronous OCR for Better Performance
 
 ```javascript
-const windowsAI = require("./windows-ai-addon/build/Release/windows-ai-addon.node");
+const windowsAI = require("electron-windows-ai-addon");
 
 async function quickTextRecognition() {
   try {
@@ -599,7 +851,7 @@ quickTextRecognition();
 Always check response status and handle potential errors:
 
 ```javascript
-const windowsAI = require("./windows-ai-addon/build/Release/windows-ai-addon.node");
+const windowsAI = require("electron-windows-ai-addon");
 
 async function robustGeneration(prompt) {
   try {
@@ -652,7 +904,7 @@ async function robustGeneration(prompt) {
 electron-windows-ai-addon/
 ├── windows-ai-addon/
 │   ├── windows-ai-addon.cc          # Main addon entry point
-│   ├── LanguageModelProjections.h   # Language model API wrappers
+│   ├── LanguageModelProjections.h   # Language model & text summarization API wrappers
 │   ├── LanguageModelProjections.cpp
 │   ├── ImagingProjections.h         # Imaging API wrappers
 │   ├── ImagingProjections.cpp
@@ -727,6 +979,23 @@ const checkAllFeatures = () => {
         : "✗ Disabled";
     console.log(`${name}: ${status}`);
   });
+};
+
+// Test TextSummarizer functionality
+const testSummarization = async () => {
+  try {
+    const model = await windowsAI.LanguageModel.CreateAsync();
+    const summarizer = new windowsAI.TextSummarizer(model);
+
+    const testText = "This is a test sentence for summarization functionality.";
+    const result = await summarizer.SummarizeAsync(testText);
+
+    console.log("TextSummarizer test successful:", result.Text);
+    return true;
+  } catch (error) {
+    console.error("TextSummarizer test failed:", error);
+    return false;
+  }
 };
 ```
 
