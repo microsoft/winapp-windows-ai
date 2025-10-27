@@ -18,7 +18,7 @@
     "nan": "^2.23.0",
     "node-addon-api": "^8.5.0",
     "node-gyp": "^11.4.2",
-    "windows-sdk": "file:../winsdk/src/winsdk-npm/windows-sdk-1.0.0.tgz"
+    "@microsoft/winsdk": "file:../winsdk/artifacts/microsoft-winsdk-0.1.0-prerelease.59.tgz"
   },
   "files": [
     "/windows-ai-addon",
