@@ -72,7 +72,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: npm-package
-          path: ./*.tgz
+          path: artifacts/*.tgz
 
       # Create GitHub pre-release (only on push to main)
       - name: Create Pre-Release
@@ -98,4 +98,4 @@ jobs:
             npm install electron-windows-ai-addon-${{ steps.build.outputs.version }}.tgz
             ```
           files: |
-            ./*.tgz
+            artifacts/*.tgz
