@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
+    />
+    <meta
+      http-equiv="X-Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
+    />
+    <title>Windows AI Example</title>
+    <style>
+      #myButton {
+        width: 200px;
+        height: 30px;
+        border-radius: 8px;
+        border: 1px solid;
+        cursor: pointer;
+      }
+      #generatedText {
+        margin-top: 10px;
+        padding: 15px;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+        min-height: 50px;
+        white-space: pre-wrap;
+      }
+    </style>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        document.getElementById("myButton").onclick = async function () {
+          const textDisplay = document.getElementById("generatedText");
+          textDisplay.textContent = "Generating text...";
+
+          try {
+            const generated = await window.windowsAI.generateText(
+              "Are you there?"
+            );
+            console.log(generated);
+            textDisplay.textContent = generated;
+          } catch (error) {
+            console.error("Error generating text:", error);
+            textDisplay.textContent = "Error generating text: " + error.message;
+          }
+        };
+      });
+    </script>
+  </head>
+  <body>
+    <button id="myButton">Run Prompt: Are you there?</button>
+
+    <div id="generatedText">Phi Silica generated text will appear here...</div>
+  </body>
+</html>

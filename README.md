@@ -4,18 +4,20 @@ A Node.js native addon that provides access to [Windows AI APIs](https://learn.m
 
 ## Prerequisites
 
-- **Windows 11** (using Windows Insider Preview (WIP))
+- **Copilot+PC**
+- **Windows 11** (using Windows Insider Preview build 26120.3073 (Dev and Beta Channels) or later)
 - **Node.js** 18.x or later
 - **Visual Studio 2022** with C++ build tools
 - **Python** 3.x
 - **Yarn** package manager
-- **Copilot+PC**
+
+See [Windows AI API's Dependencies](https://learn.microsoft.com/windows/ai/apis/get-started?tabs=winget%2Cwinui%2Cwinui2#dependencies) for more information on system requirements to run Windows AI API's.
 
 To verify your device is able to access Windows AI models, you can download the [AI Dev Gallery app](ms-windows-store://pdp/?productid=9N9PN1MM3BD5) and verify the "AI APIs" samples run on your device.
 
 ## Dependencies
 
-This package depends on the [windows-sdk](https://github.com/microsoft/winsdk) package. Any electron app which uses this package must also take a dependency on `windows-sdk` and follow its installation and setup steps.
+This package depends on the [@microsoft/winsdk](https://github.com/microsoft/winsdk) package. Any electron app which uses this package must also take a dependency on `@microsoft/winsdk` and follow its installation and setup steps.
 
 ## Get Started Using electron-windows-ai-addon in an Electron App
 
@@ -34,30 +36,47 @@ yarn add <path to tgz>
 
 ### 2. Add winsdk as a Dependency
 
-The `windows-sdk` package has not been published to npm yet. You can install a copy of the package from GitHub.
+The `@microsoft/winsdk` package has not been published to npm yet. You can install a copy of the package from GitHub.
 
-Check which `windows-sdk` version your `electron-windows-ai-addon` package depends on in the [Release notes](<(https://github.com/microsoft/electron-windows-ai-addon/releases)>). Then download the [prerelease .tgz](https://github.com/microsoft/winsdk/releases) (can be found within Assets folder of the Release) for that version of `windows-sdk`.
+Check which `@microsoft/winsdk` version your `electron-windows-ai-addon` package depends on in the [Release notes](<(https://github.com/microsoft/electron-windows-ai-addon/releases)>). Then download the [prerelease .tgz](https://github.com/microsoft/winsdk/releases) (can be found within Assets folder of the Release) for that version of `@microsoft/winsdk`.
 
 ```bash
-cd <your-electron-app>
 yarn add <path to tgz>
 ```
 
 ### 4. Install and Setup Dependencies
 
 ```bash
-yarn install
-winsdk init --prerelease
+yarn winsdk init --prerelease
 ```
 
-Edit `winsdk.yaml` to use Microsoft.WindowsAppSDK `v1.8.250702007-experimental4`
+Edit `winsdk.yaml` to use Microsoft.WindowsAppSDK v`1.8.250702007-experimental4`
 
 ```bash
-winsdk restore
-winsdk node add-electron-debug-identity
+yarn winsdk restore
 ```
 
-### 5. Use electron-windows-ai-addon
+### 5. Add Debug Identity + Capabilities to App
+
+Disable sandboxing in `main.js` (temporary workaround for Windows bug with sparse packaging):
+
+```javacript
+app.commandLine.appendSwitch('--no-sandbox');
+```
+
+Add `systemAIModels` Capability in `appxmanifest.xml`:
+
+```xml
+<Capabilities>
+    <rescap:Capability Name="systemAIModels" />
+</Capabilities>
+```
+
+```bash
+yarn winsdk node add-electron-debug-identity
+```
+
+### 6. Use electron-windows-ai-addon
 
 Create a `preload.js` file at the root of your project.
 
@@ -72,89 +91,106 @@ const {
 
 contextBridge.exposeInMainWorld("windowsAI", {
   generateText: async (prompt) => {
-    var readyState = LanguageModel.GetReadyState();
-    if (readyState == AIFeatureReadyState.NotReady) {
-      await LanguageModel.EnsureReadyAsync();
-    } else if (readyState == AIFeatureReadyState.Ready) {
-      var languageModel = await LanguageModel.CreateAsync();
-      if (languageModel) {
-        var result = await languageModel.GenerateResponseAsync(prompt);
-        return result.Text;
+    try {
+      var readyState = LanguageModel.GetReadyState();
+      if (readyState == AIFeatureReadyState.NotReady) {
+        await LanguageModel.EnsureReadyAsync();
+      } else if (readyState == AIFeatureReadyState.Ready) {
+        var languageModel = await LanguageModel.CreateAsync();
+        if (languageModel) {
+          var result = await languageModel.GenerateResponseAsync(prompt);
+          return result.Text;
+        }
       }
+    } catch (error) {
+      console.error("Error generating text:", error);
+      throw error;
     }
   },
 });
 ```
 
-### 6. Create Button to Call API onClick
+Set `preload.js` as a preload script in `webPreferences` in `main.js`:
 
-To your app's `index.html`, add a button control which calls `generateText`.
+```javascript
+const win = new BrowserWindow({
+    ...
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: __dirname + '/preload.js',
+      sandbox: false,
+    }
+  })
+```
+
+### 7. Create Button to Call API onClick
+
+To your app's `index.html`, add a button control which calls `generateText` and a `generatedText` text block.
 
 ```html
 <!DOCTYPE html>
 <html>
   <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
+    />
+    <meta
+      http-equiv="X-Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
+    />
     <title>Windows AI Example</title>
+    <style>
+      #myButton {
+        width: 200px;
+        height: 30px;
+        border-radius: 8px;
+        border: 1px solid;
+      }
+      #generatedText {
+        margin-top: 20px;
+        padding: 15px;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+        min-height: 50px;
+        white-space: pre-wrap;
+      }
+    </style>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
-        document.getElementById("myButton").onclick = function () {
-          const generated = await window.windowsAI.generateText("Are you there?");
-          console.log(generated);
+        document.getElementById("myButton").onclick = async function () {
+          const textDisplay = document.getElementById("generatedText");
+          textDisplay.textContent = "Generating text...";
+
+          try {
+            const generated = await window.windowsAI.generateText(
+              "Are you there?"
+            );
+            textDisplay.textContent = generated;
+          } catch (error) {
+            console.error("Error generating text:", error);
+            textDisplay.textContent = "Error generating text: " + error.message;
+          }
         };
       });
     </script>
-    ...
   </head>
   <body>
-    ...
-    <button
-      id="myButton"
-      style="width: 20px; height: 30px; background: rgba(230, 230, 230, 0.7); border-radius: 12px;"
-    >
-      Run Phi Silica Text Generation
-    </button>
-    ...
+    <button id="myButton">Run Prompt: Are you there?</button>
+
+    <div id="generatedText">
+      Generated text from Phi Silica will appear here...
+    </div>
   </body>
 </html>
 ```
 
-## Building the Package Locally
-
-### 1. Clone the Repository
+### 8. Run Your App
 
 ```bash
-git clone https://github.com/microsoft/electron-windows-ai-addon.git
-```
-
-### 2. Build and Package winsdk Package
-
-The `windows-sdk` package has not been published to npm yet. You can install a copy of the package from GitHub.
-
-Check `electron-windows-ai-addon`'s `package.json` for its `windows-sdk` package dependency. Then download the [prerelease .tgz](https://github.com/microsoft/winsdk/releases) (can be found within Assets folder of the Release) for that `windows-sdk` version.
-
-```bash
-cd <your-electron-app>
-yarn add <path to tgz>
-```
-
-### 3. Install Dependencies
-
-```bash
-cd <path to electron-windows-ai-addon repo>
-yarn install
-yarn winsdk restore
-```
-
-### 4. Build the Native Addon
-
-```bash
-yarn build-windows-ai-addon
-```
-
-### 5. Locally Package Addon
-
-```bash
-npm pack
+yarn run start
 ```
 
 ## Supported APIs
@@ -304,7 +340,7 @@ Main class for generating descriptions and captions for images.
 
 **Instance Methods:**
 
-- `DescribeAsync(filePath, descriptionKind, contentFilterOptions)` - Generates description for an image
+- `DescribeAsync(filePath, descriptionKind, contentFilterOptions)` - Generates description for an image, file path must be the absolute path to the image
 - `Close()` - Closes the generator and releases resources
 
 #### `ImageDescriptionResult`
@@ -328,8 +364,8 @@ Main class for optical character recognition (OCR) on images.
 
 **Instance Methods:**
 
-- `RecognizeTextFromImageAsync(filePath)` - Asynchronously recognizes text in an image
-- `RecognizeTextFromImage(filePath)` - Synchronously recognizes text in an image
+- `RecognizeTextFromImageAsync(filePath)` - Asynchronously recognizes text in an image, file path must be the absolute path to the image
+- `RecognizeTextFromImage(filePath)` - Synchronously recognizes text in an image, file path must be the absolute path to the image
 - `Close()` - Closes the recognizer and releases resources
 - `Dispose()` - Disposes the recognizer and cleans up resources
 
@@ -374,36 +410,6 @@ Defines the bounding box coordinates for recognized text elements.
 - `TopRight` (object) - Top-right corner coordinates {X, Y}
 - `BottomLeft` (object) - Bottom-left corner coordinates {X, Y}
 - `BottomRight` (object) - Bottom-right corner coordinates {X, Y}
-
-#### `ImageObjectRemover` [IN PROGRESS - NOT READY FOR USE]
-
-Class for removing objects from images using AI.
-
-**Static Methods:**
-
-- `CreateAsync()` - Asynchronously creates a new ImageObjectRemover instance
-- `GetReadyState()` - Returns the current AI feature ready state
-- `EnsureReadyAsync()` - Ensures object removal features are ready for use
-
-**Instance Methods:**
-
-- `RemoveAsync(...)` - Removes objects from an image (implementation pending)
-- `Close()` - Closes the remover and releases resources
-
-#### `ImageScaler` [IN PROGRESS - NOT READY FOR USE]
-
-Class for scaling and resizing images with AI enhancement.
-
-**Static Methods:**
-
-- `CreateAsync()` - Asynchronously creates a new ImageScaler instance
-- `GetReadyState()` - Returns the current AI feature ready state
-- `EnsureReadyAsync()` - Ensures image scaling features are ready for use
-
-**Instance Methods:**
-
-- `ScaleAsync(...)` - Scales an image with AI enhancement (implementation pending)
-- `Close()` - Closes the scaler and releases resources
 
 ### Content Safety Classes
 
@@ -1294,56 +1300,6 @@ async function quickTextRecognition() {
 quickTextRecognition();
 ```
 
-## Error Handling
-
-Always check response status and handle potential errors:
-
-```javascript
-const windowsAI = require("electron-windows-ai-addon");
-
-async function robustGeneration(prompt) {
-  try {
-    // Ensure AI is ready
-    const readyResult = await windowsAI.LanguageModel.EnsureReadyAsync();
-    if (readyResult.State !== windowsAI.AIFeatureReadyResultState.Success) {
-      throw new Error(`AI not ready: ${readyResult.ErrorDisplayText}`);
-    }
-
-    // Create model and generate
-    const model = new windowsAI.LanguageModel();
-    const result = await model.GenerateAsync(prompt);
-
-    // Handle different response statuses
-    switch (result.Status) {
-      case windowsAI.LanguageModelResponseStatus.Complete:
-        return result.Text;
-
-      case windowsAI.LanguageModelResponseStatus
-        .PromptBlockedByContentModeration:
-        throw new Error("Prompt was blocked by content moderation");
-
-      case windowsAI.LanguageModelResponseStatus
-        .ResponseBlockedByContentModeration:
-        throw new Error("Response was blocked by content moderation");
-
-      case windowsAI.LanguageModelResponseStatus.PromptLargerThanContext:
-        throw new Error("Prompt is too long for the model context");
-
-      case windowsAI.LanguageModelResponseStatus.Error:
-        throw new Error(
-          `Model error: ${result.ExtendedError || "Unknown error"}`
-        );
-
-      default:
-        throw new Error(`Unexpected status: ${result.Status}`);
-    }
-  } catch (error) {
-    console.error("Generation failed:", error.message);
-    throw error;
-  }
-}
-```
-
 ## Development
 
 ### Project Structure
@@ -1365,6 +1321,45 @@ electron-windows-ai-addon/
 └── README.md
 ```
 
+### Building the Package Locally
+
+#### 1. Clone the Repository
+
+```bash
+git clone https://github.com/microsoft/electron-windows-ai-addon.git
+```
+
+#### 2. Build and Package winsdk Package
+
+The `@microsoft/winsdk` package has not been published to npm yet. You can install a copy of the package from GitHub.
+
+Check `electron-windows-ai-addon`'s `package.json` for its `@microsoft/winsdk` package dependency. Then download the [prerelease .tgz](https://github.com/microsoft/winsdk/releases) (can be found within Assets folder of the Release) for that `@microsoft/winsdk` version.
+
+```bash
+cd <your-electron-app>
+yarn add <path to tgz>
+```
+
+#### 3. Install Dependencies
+
+```bash
+cd <path to electron-windows-ai-addon repo>
+yarn install
+yarn winsdk restore
+```
+
+#### 4. Build the Native Addon
+
+```bash
+yarn build-windows-ai-addon
+```
+
+#### 5. Locally Package Addon
+
+```bash
+npm pack
+```
+
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
@@ -1373,64 +1368,24 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ### Common Issues
 
-1. **"AI not ready" errors**: Ensure Windows 11 22H2+ (Windows Insider Preview) and Copilot+ PC requirements are met
-2. **EnsureReadyAsync cancelled or failed**: Ensure appxmanifest has `maxtestedversion` set to 26226 and the `systemAIModels` capability has been added.
+1. **"AI not ready" errors**: Ensure Windows 11 22H2+ (Windows Insider Preview) and Copilot+ PC requirements are met (see [Prerequisites](#prerequisites))
+2. **EnsureReadyAsync cancelled or failed**: Ensure appxmanifest has the `systemAIModels` capability has been added (see [Add Debug Identity + Capabilities to App](#5-add-debug-identity--capabilities-to-app))
 3. **Class Not Registered**:
 
-   1. Make sure `windows-sdk` package was setup correctly.
-   2. Ensure `winsdk.yaml` files in app exactly matches the `winsdk.yaml` file in `electron-windows-ai-addon`.
+   1. Make sure `@microsoft/winsdk` package was setup correctly.
+   2. Ensure `winsdk.yaml` file in app exactly matches the `winsdk.yaml` file in `electron-windows-ai-addon`.
    3. Ensure `yarn winsdk restore` then `yarn winsdk node add-electron-debug-identity` have been called.
    4. If the issue is still persisting:
-      1. Delete `node_modules` and `.windsdk`
+      1. Delete `node_modules` and `.winsdk`
       2. Run `yarn cache clean`
       3. Run `yarn install`
       4. Run `yarn winsdk restore`
       5. Run `yarn winsdk node add-electron-debug-identity`
 
-4. **Image file not found**: Use absolute file paths with proper Windows path separators
-5. **Content moderation blocks**: Adjust `ContentFilterOptions` severity levels as appropriate
-6. **Memory issues**: Always call `Close()` or `Dispose()` methods to clean up resources
-
-### Debug Tips
-
-```javascript
-// Check feature availability before use
-const checkAllFeatures = () => {
-  const features = {
-    "Language Model": windowsAI.LanguageModel.GetReadyState(),
-    "Image Description": windowsAI.ImageDescriptionGenerator.GetReadyState(),
-    "Text Recognition": windowsAI.TextRecognizer.GetReadyState(),
-    "Object Remover": windowsAI.ImageObjectRemover.GetReadyState(),
-    "Image Scaler": windowsAI.ImageScaler.GetReadyState(),
-  };
-
-  Object.entries(features).forEach(([name, state]) => {
-    const status =
-      state === windowsAI.AIFeatureReadyState.Ready
-        ? "✓ Ready"
-        : state === windowsAI.AIFeatureReadyState.NotReady
-        ? "⚠ Not Ready"
-        : state === windowsAI.AIFeatureReadyState.NotSupportedOnCurrentSystem
-        ? "✗ Not Supported"
-        : "✗ Disabled";
-    console.log(`${name}: ${status}`);
-  });
-};
-
-// Test TextSummarizer functionality
-const testSummarization = async () => {
-  try {
-    const model = await windowsAI.LanguageModel.CreateAsync();
-    const summarizer = new windowsAI.TextSummarizer(model);
-
-    const testText = "This is a test sentence for summarization functionality.";
-    const result = await summarizer.SummarizeAsync(testText);
-
-    console.log("TextSummarizer test successful:", result.Text);
-    return true;
-  } catch (error) {
-    console.error("TextSummarizer test failed:", error);
-    return false;
-  }
-};
-```
+4. **App renders blank**: Make sure to disable sandboxing when running your Electron app on Windows, then re-run `yarn winsdk node add-electron-debug-identity` (see [Add Debug Identity + Capabilities to App](#5-add-debug-identity--capabilities-to-app))
+5. **"Can't find module: electron-windows-ai-addon" errors**: Make sure sandboxing has been disabled in `webPreferences` (see [Use electron-windows-ai-addon](#6-use-electron-windows-ai-addon))
+6. **"generateText" function doesn't exist" errors**: Make sure `preload.js` file has been created. Add `preload.js` to `webPreferences` with the correct absolute path (see [Use electron-windows-ai-addon](#6-use-electron-windows-ai-addon))
+7. **Image file not found**: You must use absolute file paths with proper Windows path separators
+8. **Content moderation blocks**: Adjust `ContentFilterOptions` severity levels as appropriate
+9. **Memory issues**: Always call `Close()` or `Dispose()` methods to clean up resources
+10. See [Windows AI API's Troubleshooting](https://learn.microsoft.com/windows/ai/apis/troubleshooting) for more information on troubleshooting the native Windows AI API's
