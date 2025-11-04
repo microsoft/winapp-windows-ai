@@ -1335,10 +1335,7 @@ The `@microsoft/winsdk` package has not been published to npm yet. You can insta
 
 Check `electron-windows-ai-addon`'s `package.json` for its `@microsoft/winsdk` package dependency. Then download the [prerelease .tgz](https://github.com/microsoft/winsdk/releases) (can be found within Assets folder of the Release) for that `@microsoft/winsdk` version.
 
-```bash
-cd <your-electron-app>
-yarn add <path to tgz>
-```
+Move tgz file to filepath specified in repo's `package.json` for `@microsoft/winsdk` package or update `package.json` to tgz path.
 
 #### 3. Install Dependencies
 
@@ -1359,6 +1356,30 @@ yarn build-windows-ai-addon
 ```bash
 npm pack
 ```
+
+### Building `test-app` Locally
+
+#### 1. Build Package Locally
+
+Complete [Building the Package](#1-build-package-locally) Locally steps above.
+
+#### 2. Setup Dependencies
+
+If `@microsoft/winsdk` package is installed at a different location than specified in `test-app`'s `package.json`, update the `package.json` entry.
+
+```bash
+yarn install
+yarn winsdk restore
+yarn winsdk node add-electron-debug-identity
+```
+
+#### 3. Run the App
+
+```bash
+yarn run start
+```
+
+If you make changes to the electron-windows-ai-addon package and want to see your changes loaded into the sample app, make sure to re-build the addon before re-running `test-app`.
 
 ## License
 
