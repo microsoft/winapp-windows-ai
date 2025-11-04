@@ -2,4 +2,4 @@
 # Development certificate
 devcert.pfx
 /node_modules
-/.winsdk
+/.winapp

@@ -17,13 +17,15 @@ To verify your device is able to access Windows AI models, you can download the 
 
 ## Dependencies
 
-This package depends on the [@microsoft/winsdk](https://github.com/microsoft/winsdk) package. Any electron app which uses this package must also take a dependency on `@microsoft/winsdk` and follow its installation and setup steps.
+This package depends on the [@microsoft/winappcli](https://github.com/microsoft/WinAppCli) package. Any electron app which uses this package must also take a dependency on `@microsoft/winappcli` and follow its installation and setup steps.
 
 ## Get Started Using electron-windows-ai-addon in an Electron App
 
 ### 1. Create an Electron App
 
-Create an electron app by following the getting started directions at [Electron: Building you First App](https://www.electronjs.org/docs/latest/tutorial/tutorial-first-app) or [Electron Forge: Getting Started](https://www.electronforge.io/).
+Create an electron app by following the getting started directions at [Electron: Building you First App](https://www.electronjs.org/docs/latest/tutorial/tutorial-first-app).
+
+The instructions below follow the steps for adding `electron-windows-ai-addon` to a standard Electron app. This module can also be added to Electron apps built using Electron Forge and other templates. The setup steps should be similar, but additional configuration may be required to support using NodeJS addons.
 
 ### 2. Add electron-windows-ai-addon as a Dependency
 
@@ -34,11 +36,11 @@ cd <your-electron-app>
 yarn add <path to tgz>
 ```
 
-### 2. Add winsdk as a Dependency
+### 2. Add winappcli as a Dependency
 
-The `@microsoft/winsdk` package has not been published to npm yet. You can install a copy of the package from GitHub.
+The `@microsoft/winappcli` package has not been published to npm yet. You can install a copy of the package from GitHub.
 
-Check which `@microsoft/winsdk` version your `electron-windows-ai-addon` package depends on in the [Release notes](<(https://github.com/microsoft/electron-windows-ai-addon/releases)>). Then download the [prerelease .tgz](https://github.com/microsoft/winsdk/releases) (can be found within Assets folder of the Release) for that version of `@microsoft/winsdk`.
+Check which `@microsoft/winappcli` version your `electron-windows-ai-addon` package depends on in the [Release notes](<(https://github.com/microsoft/electron-windows-ai-addon/releases)>). Then download the [prerelease .tgz](https://github.com/microsoft/WinAppCli/releases) (can be found within Assets folder of the Release) for that version of `@microsoft/winappcli`.
 
 ```bash
 yarn add <path to tgz>
@@ -47,13 +49,13 @@ yarn add <path to tgz>
 ### 4. Install and Setup Dependencies
 
 ```bash
-yarn winsdk init --prerelease
+yarn winapp init --prerelease
 ```
 
-Edit `winsdk.yaml` to use Microsoft.WindowsAppSDK v`1.8.250702007-experimental4`
+Edit `winapp.yaml` to use Microsoft.WindowsAppSDK v`1.8.250702007-experimental4`
 
 ```bash
-yarn winsdk restore
+yarn winapp restore
 ```
 
 ### 5. Add Debug Identity + Capabilities to App
@@ -73,7 +75,7 @@ Add `systemAIModels` Capability in `appxmanifest.xml`:
 ```
 
 ```bash
-yarn winsdk node add-electron-debug-identity
+yarn winapp node add-electron-debug-identity
 ```
 
 ### 6. Use electron-windows-ai-addon
@@ -95,7 +97,8 @@ contextBridge.exposeInMainWorld("windowsAI", {
       var readyState = LanguageModel.GetReadyState();
       if (readyState == AIFeatureReadyState.NotReady) {
         await LanguageModel.EnsureReadyAsync();
-      } else if (readyState == AIFeatureReadyState.Ready) {
+      }
+      if (readyState == AIFeatureReadyState.Ready) {
         var languageModel = await LanguageModel.CreateAsync();
         if (languageModel) {
           var result = await languageModel.GenerateResponseAsync(prompt);
@@ -110,7 +113,7 @@ contextBridge.exposeInMainWorld("windowsAI", {
 });
 ```
 
-Set `preload.js` as a preload script in `webPreferences` in `main.js`:
+Update `webPreferences` in `main.js`:
 
 ```javascript
 const win = new BrowserWindow({
@@ -118,8 +121,8 @@ const win = new BrowserWindow({
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      preload: __dirname + '/preload.js',
-      sandbox: false,
+      preload: __dirname + '/preload.js', // If using Webpack or other plug-in, this path may change. See plug-in's documentation for more information.
+      sandbox: false, // Workaround for Windows bug with sandboxing
     }
   })
 ```
@@ -1329,20 +1332,20 @@ electron-windows-ai-addon/
 git clone https://github.com/microsoft/electron-windows-ai-addon.git
 ```
 
-#### 2. Build and Package winsdk Package
+#### 2. Download Windows App CLI Package
 
-The `@microsoft/winsdk` package has not been published to npm yet. You can install a copy of the package from GitHub.
+The `@microsoft/winappcli` package has not been published to npm yet. You can install a copy of the package from GitHub.
 
-Check `electron-windows-ai-addon`'s `package.json` for its `@microsoft/winsdk` package dependency. Then download the [prerelease .tgz](https://github.com/microsoft/winsdk/releases) (can be found within Assets folder of the Release) for that `@microsoft/winsdk` version.
+Check `electron-windows-ai-addon`'s `package.json` for its `@microsoft/winappcli` package dependency. Then download the [release .tgz](https://github.com/microsoft/WinAppCli/releases) (can be found within Assets folder of the Release) for that `@microsoft/winappcli` version.
 
-Move tgz file to filepath specified in repo's `package.json` for `@microsoft/winsdk` package or update `package.json` to tgz path.
+Move tgz file to filepath specified in repo's `package.json` for `@microsoft/winappcli` package or update `package.json` to tgz path.
 
 #### 3. Install Dependencies
 
 ```bash
 cd <path to electron-windows-ai-addon repo>
 yarn install
-yarn winsdk restore
+yarn winapp restore
 ```
 
 #### 4. Build the Native Addon
@@ -1365,12 +1368,12 @@ Complete [Building the Package](#1-build-package-locally) Locally steps above.
 
 #### 2. Setup Dependencies
 
-If `@microsoft/winsdk` package is installed at a different location than specified in `test-app`'s `package.json`, update the `package.json` entry.
+If `@microsoft/winappcli` package is installed at a different location than specified in `test-app`'s `package.json`, update the `package.json` entry.
 
 ```bash
 yarn install
-yarn winsdk restore
-yarn winsdk node add-electron-debug-identity
+yarn winapp restore
+yarn winapp node add-electron-debug-identity
 ```
 
 #### 3. Run the App
@@ -1393,17 +1396,17 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 2. **EnsureReadyAsync cancelled or failed**: Ensure appxmanifest has the `systemAIModels` capability has been added (see [Add Debug Identity + Capabilities to App](#5-add-debug-identity--capabilities-to-app))
 3. **Class Not Registered**:
 
-   1. Make sure `@microsoft/winsdk` package was setup correctly.
-   2. Ensure `winsdk.yaml` file in app exactly matches the `winsdk.yaml` file in `electron-windows-ai-addon`.
-   3. Ensure `yarn winsdk restore` then `yarn winsdk node add-electron-debug-identity` have been called.
+   1. Make sure `@microsoft/winappcli` package was setup correctly.
+   2. Ensure `winapp.yaml` file in app exactly matches the `winapp.yaml` file in `electron-windows-ai-addon`.
+   3. Ensure `yarn winapp restore` then `yarn winapp node add-electron-debug-identity` have been called.
    4. If the issue is still persisting:
-      1. Delete `node_modules` and `.winsdk`
+      1. Delete `node_modules` and `.winapp`
       2. Run `yarn cache clean`
       3. Run `yarn install`
-      4. Run `yarn winsdk restore`
-      5. Run `yarn winsdk node add-electron-debug-identity`
+      4. Run `yarn winapp restore`
+      5. Run `yarn winapp node add-electron-debug-identity`
 
-4. **App renders blank**: Make sure to disable sandboxing when running your Electron app on Windows, then re-run `yarn winsdk node add-electron-debug-identity` (see [Add Debug Identity + Capabilities to App](#5-add-debug-identity--capabilities-to-app))
+4. **App renders blank**: Make sure to disable sandboxing when running your Electron app on Windows, then re-run `yarn winapp node add-electron-debug-identity` (see [Add Debug Identity + Capabilities to App](#5-add-debug-identity--capabilities-to-app))
 5. **"Can't find module: electron-windows-ai-addon" errors**: Make sure sandboxing has been disabled in `webPreferences` (see [Use electron-windows-ai-addon](#6-use-electron-windows-ai-addon))
 6. **"generateText" function doesn't exist" errors**: Make sure `preload.js` file has been created. Add `preload.js` to `webPreferences` with the correct absolute path (see [Use electron-windows-ai-addon](#6-use-electron-windows-ai-addon))
 7. **Image file not found**: You must use absolute file paths with proper Windows path separators

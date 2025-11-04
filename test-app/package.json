@@ -5,12 +5,12 @@
   "license": "MIT",
   "scripts": {
     "start": "electron .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "setup-debug": "npx winapp node add-electron-debug-identity"
   },
   "devDependencies": {
     "electron": "^39.0.0"
   },
   "dependencies": {
-    "@microsoft/winsdk": "..\\..\\winsdk\\artifacts\\microsoft-winsdk-0.1.0-prerelease.59.tgz"
+    "@microsoft/winappcli": "..\\..\\winappcli\\artifacts\\microsoft-winappcli-0.1.1.tgz"
   }
 }

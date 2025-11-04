@@ -25,25 +25,25 @@ param(
 )
 
 # Constants
-$WinSdkRepo = "microsoft/winsdk"
+$WinAppCliRepo = "microsoft/WinAppCli"
 
-function Download-WinSdkTarball {
+function Download-WinAppCliTarball {
     param(
         [string]$DestinationPath
     )
     
     # Extract version from package.json
     $PackageJson = Get-Content "package.json" | ConvertFrom-Json
-    $WinSdkDep = $PackageJson.devDependencies.'@microsoft/winsdk'
-    if ($WinSdkDep -match "microsoft-winsdk-(.+)\.tgz") {
+    $WinAppCliDep = $PackageJson.devDependencies.'@microsoft/winappcli'
+    if ($WinAppCliDep -match "microsoft-winappcli-(.+)\.tgz") {
         $Version = $matches[1]
-        Write-Host "[WINSDK] Detected version from package.json: $Version" -ForegroundColor Cyan
+        Write-Host "[WINAPPCLI] Detected version from package.json: $Version" -ForegroundColor Cyan
     } else {
-        Write-Error "Could not detect winsdk version from package.json. Check that @microsoft/winsdk dependency is properly specified."
+        Write-Error "Could not detect winappcli version from package.json. Check that @microsoft/winappcli dependency is properly specified."
         exit 1
     }
-    
-    $TarballName = "microsoft-winsdk-$Version.tgz"
+
+    $TarballName = "microsoft-winappcli-$Version.tgz"
     $FullDestPath = Join-Path $DestinationPath $TarballName
     
     # Create destination directory if it doesn't exist
@@ -54,33 +54,33 @@ function Download-WinSdkTarball {
     
     # Skip download if file already exists
     if (Test-Path $FullDestPath) {
-        Write-Host "[WINSDK] Tarball already exists: $FullDestPath" -ForegroundColor Green
+        Write-Host "[WINAPPCLI] Tarball already exists: $FullDestPath" -ForegroundColor Green
         return
     }
-    
-    Write-Host "[WINSDK] Downloading $TarballName from $WinSdkRepo..." -ForegroundColor Blue
-    
+
+    Write-Host "[WINAPPCLI] Downloading $TarballName from $WinAppCliRepo..." -ForegroundColor Blue
+
     try {
         # Use GitHub CLI for download (requires gh to be installed and authenticated)
         if (-not (Get-Command "gh" -ErrorAction SilentlyContinue)) {
             Write-Error "GitHub CLI (gh) is required but not found. Please install it: https://cli.github.com/"
             exit 1
         }
-        
-        Write-Host "[WINSDK] Using GitHub CLI for download..." -ForegroundColor Gray
-        & gh release download "v$Version" --repo $WinSdkRepo --pattern $TarballName --dir (Split-Path $FullDestPath -Parent)
-        
+
+        Write-Host "[WINAPPCLI] Using GitHub CLI for download..." -ForegroundColor Gray
+        & gh release download "v$Version" --repo $WinAppCliRepo --pattern $TarballName --dir (Split-Path $FullDestPath -Parent)
+
         if ($LASTEXITCODE -eq 0) {
-            Write-Host "[WINSDK] Successfully downloaded via GitHub CLI" -ForegroundColor Green
+            Write-Host "[WINAPPCLI] Successfully downloaded via GitHub CLI" -ForegroundColor Green
         } else {
             Write-Error "GitHub CLI download failed. Make sure you're authenticated: gh auth login"
             exit 1
         }
         
     } catch {
-        Write-Error "Failed to download winsdk tarball: $($_.Exception.Message)"
-        Write-Host "[WINSDK] Make sure you have access to the private repository and are authenticated with GitHub CLI" -ForegroundColor Yellow
-        Write-Host "[WINSDK] Run: gh auth login" -ForegroundColor Yellow
+        Write-Error "Failed to download winappcli tarball: $($_.Exception.Message)"
+        Write-Host "[WINAPPCLI] Make sure you have access to the private repository and are authenticated with GitHub CLI" -ForegroundColor Yellow
+        Write-Host "[WINAPPCLI] Run: gh auth login" -ForegroundColor Yellow
         exit 1
     }
 }
@@ -102,9 +102,9 @@ try
     if (-not $SkipDependencies) {
         Write-Host "[SETUP] Setting up dependencies..." -ForegroundColor Blue
         
-        # Download winsdk tarball if needed
-        Write-Host "[SETUP] Ensuring winsdk tarball is available..." -ForegroundColor Blue
-        Download-WinSdkTarball -DestinationPath "../winsdk/artifacts"
+        # Download winappcli tarball if needed
+        Write-Host "[SETUP] Ensuring winappcli tarball is available..." -ForegroundColor Blue
+        Download-WinAppCliTarball -DestinationPath "../winappcli/artifacts"
         
         # Install npm dependencies
         Write-Host "[SETUP] Installing npm dependencies..." -ForegroundColor Blue
@@ -114,11 +114,11 @@ try
             exit 1
         }
         
-        # Setup winsdk dependency
-        Write-Host "[SETUP] Setting up winsdk dependency..." -ForegroundColor Blue
-        yarn winsdk restore
+        # Setup winappcli dependency
+        Write-Host "[SETUP] Setting up winappcli dependency..." -ForegroundColor Blue
+        yarn winapp restore
         if ($LASTEXITCODE -ne 0) {
-            Write-Error "Failed to setup winsdk dependency"
+            Write-Error "Failed to setup winappcli dependency"
             exit 1
         }
     } else {

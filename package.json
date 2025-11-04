@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build-windows-ai-addon": "node-gyp clean configure build --directory=windows-ai-addon --arch=arm64",
-     "clean": "node -e \"require('fs').rmSync('bin', {recursive: true, force: true})\""
+    "clean": "node -e \"require('fs').rmSync('bin', {recursive: true, force: true})\""
   },
   "keywords": [],
   "license": "MIT",
@@ -18,8 +18,7 @@
   "devDependencies": {
     "nan": "^2.23.0",
     "node-addon-api": "^8.5.0",
-    "node-gyp": "^11.4.2",
-    "@microsoft/winsdk": "file:../winsdk/artifacts/microsoft-winsdk-0.1.0-prerelease.59.tgz"
+    "node-gyp": "^11.4.2"
   },
   "files": [
     "/windows-ai-addon",
@@ -27,5 +26,8 @@
     "/LICENSE",
     "/index.js",
     "/index.d.ts"
-  ]
+  ],
+  "dependencies": {
+    "@microsoft/winappcli": "..\\winappcli\\artifacts\\microsoft-winappcli-0.1.1.tgz"
+  }
 }

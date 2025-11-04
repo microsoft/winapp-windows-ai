@@ -1,5 +1,8 @@
 # Windows SDK packages and generated files
-.winsdk/
+.winapp/
 node_modules/
 windows-ai-addon/build
 *.tgz
+
+# Development certificate
+devcert.pfx

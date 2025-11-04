@@ -54,18 +54,18 @@ jobs:
           $buildNumber = & ".\scripts\get-build-number.ps1"
           $fullVersion = "$baseVersion-prerelease.$buildNumber"
 
-          # Extract winsdk version from package.json
-          $winsdkDep = $packageJson.devDependencies.'@microsoft/winsdk'
-          $winsdkVersion = "Unknown"
-          if ($winsdkDep -match "microsoft-winsdk-(.+)\.tgz") {
-            $winsdkVersion = $matches[1]
+          # Extract winapp version from package.json
+          $winappDep = $packageJson.devDependencies.'@microsoft/winappcli'
+          $winappVersion = "Unknown"
+          if ($winappDep -match "microsoft-winappcli-(.+)\.tgz") {
+            $winappVersion = $matches[1]
           }
 
           # Export for use in subsequent steps
           echo "version=$fullVersion" >> $env:GITHUB_OUTPUT
           echo "base_version=$baseVersion" >> $env:GITHUB_OUTPUT
           echo "build_number=$buildNumber" >> $env:GITHUB_OUTPUT
-          echo "winsdk_version=$winsdkVersion" >> $env:GITHUB_OUTPUT
+          echo "winapp_version=$winappVersion" >> $env:GITHUB_OUTPUT
 
       # Upload all build artifacts
       - name: Upload npm package
@@ -89,7 +89,7 @@ jobs:
             Version: `${{ steps.build.outputs.version }}`
             Base Version: `${{ steps.build.outputs.base_version }}`
             Build Number: `${{ steps.build.outputs.build_number }}`
-            Windows SDK Version: `${{ steps.build.outputs.winsdk_version }}`
+            Windows App SDK Version: `${{ steps.build.outputs.winapp_version }}`
             Commit: `${{ github.sha }}`
 
 

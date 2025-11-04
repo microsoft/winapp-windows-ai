@@ -431,7 +431,7 @@ yarn build-windows-ai-addon
 
 #### **Common Build Issues**
 
-- **Missing Windows SDK**: Run `yarn winsdk restore`
+- **Missing Windows SDK**: Run `yarn winapp restore`
 - **Wrong architecture**: Check `--arch=arm64` vs `--arch=x64` in package.json
 - **Missing dependencies**: Ensure Visual Studio 2022 C++ tools installed
 
