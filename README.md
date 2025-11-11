@@ -18,6 +18,7 @@ The Windows AI Addon for Electron is a Node.js native addon that provides access
 - **Visual Studio 2022** with C++ build tools
 - **Python** 3.x
 - **Yarn** package manager
+- **Limited Access Feature Token for Phi Silica** - Request a token using the [LAF Access Token Request Form](https://forms.office.com/pages/responsepage.aspx?id=v4j5cvGGr0GRqy180BHbR25txIwisw1PlceTVpYHUm9UODlVMkszVTFaRlVLVlBPNkNaV0hKMzM5Mi4u&route=shorturl). Only needed if you wish to use the `GenerateResponseAsync` API.
 
 See [Windows AI API's Dependencies](https://learn.microsoft.com/windows/ai/apis/get-started?tabs=winget%2Cwinui%2Cwinui2#dependencies) for more information on system requirements to run Windows AI API's and scripts to install required prerequisites.
 
@@ -347,4 +348,5 @@ This project is licensed under the MIT License - see the [LICENSE](/LICENSE) for
 7. **Image file not found**: You must use absolute file paths with proper Windows path separators.
 8. **Content moderation blocks**: Adjust `ContentFilterOptions` severity levels as appropriate.
 9. **Memory issues**: Always call `Close()` or `Dispose()` methods to clean up resources.
-10. See [Windows AI API's Troubleshooting](https://learn.microsoft.com/windows/ai/apis/troubleshooting) for more information on troubleshooting the native Windows AI API's.
+10. **GenerateResponseAsync calls are failing**: `GenerateResponseAsync` uses a native API that is currently a [Limited Access Feature](https://learn.microsoft.com/en-us/uwp/api/windows.applicationmodel.limitedaccessfeatures?view=winrt-26100). To request an unlock token, please use the [LAF Access Token Request Form](https://go.microsoft.com/fwlink/?linkid=2271232&c1cid=04x409). To use this method, you must first call `LimitedAccessFeature.TryUnlockToken`. See <TODO> for usage examples.
+11. See [Windows AI API's Troubleshooting](https://learn.microsoft.com/windows/ai/apis/troubleshooting) for more information on troubleshooting the native Windows AI API's.

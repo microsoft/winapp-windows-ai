@@ -119,6 +119,11 @@ declare module "winapp-windows-ai" {
     Participant: string;
   }
 
+  export interface ConversationSummaryOptions {
+    includeMessageCitations?: boolean;
+    includeParticipantAttribution?: boolean;
+  }
+
   // =============================
   // Text Intelligence Classes
   // =============================
@@ -127,9 +132,10 @@ declare module "winapp-windows-ai" {
     constructor(languageModel: LanguageModel);
     
     SummarizeAsync(text: string): ProgressPromise<LanguageModelResponseResult>;
-    SummarizeConversationAsync(conversationItems: ConversationItem[]): ProgressPromise<LanguageModelResponseResult>;
+    SummarizeConversationAsync(conversationItems: ConversationItem[], options: ConversationSummaryOptions): ProgressPromise<LanguageModelResponseResult>;
     SummarizeParagraphAsync(text: string): ProgressPromise<LanguageModelResponseResult>;
     IsPromptLargerThanContext(text: string): boolean;
+    IsPromptLargerThanContext(conversationItems: ConversationItem[], options: ConversationSummaryOptions): { isLarger: boolean; cutoffPosition: number };
   }
 
   export class TextRewriter {
