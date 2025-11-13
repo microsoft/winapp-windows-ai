@@ -306,9 +306,14 @@ Complete [Building the Package Locally](#1-build-package-locally) steps above.
 
 If `@microsoft/winappcli` package is installed at a different location than specified in `test-app/package.json`, update the `test-app/package.json` entry.
 
+Install dependencies:
 ```bash
 yarn install
-yarn winapp restore
+```
+
+Initialize Windows App Development CLI (select Y to preserve dependency versions):
+```bash
+yarn winapp init
 yarn setup-debug
 ```
 
