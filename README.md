@@ -64,10 +64,10 @@ yarn add <path to tgz>
 Initialize project with Windows SDK and Windows App SDK:
 
 ```bash
-yarn winapp init --prerelease
+yarn winapp init
 ```
 
-Edit `winapp.yaml` to use Microsoft.WindowsAppSDK `1.8.250702007-experimental4` (`winapp.yaml` within app must match `winapp-windows-ai`'s `winapp.yaml`).
+Edit `winapp.yaml` to use Microsoft.WindowsAppSDK `1.8.251003001` (`winapp.yaml` within app must match `winapp-windows-ai`'s `winapp.yaml`).
 
 Update Windows SDK and Windows App SDK dependencies:
 
