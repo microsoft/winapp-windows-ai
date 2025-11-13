@@ -64,6 +64,13 @@ declare module "winapp-windows-ai" {
     Printed = 2
   }
   
+  export enum LimitedAccessFeatureStatus {
+    Available = 0,
+    AvailableWithoutToken = 1,
+    Unknown = 2,
+    Unavailable = 3
+  }
+  
   // =============================
   // Progress Promise Interface
   // =============================
@@ -112,6 +119,11 @@ declare module "winapp-windows-ai" {
     Participant: string;
   }
 
+  export interface ConversationSummaryOptions {
+    includeMessageCitations?: boolean;
+    includeParticipantAttribution?: boolean;
+  }
+
   // =============================
   // Text Intelligence Classes
   // =============================
@@ -120,9 +132,10 @@ declare module "winapp-windows-ai" {
     constructor(languageModel: LanguageModel);
     
     SummarizeAsync(text: string): ProgressPromise<LanguageModelResponseResult>;
-    SummarizeConversationAsync(conversationItems: ConversationItem[]): ProgressPromise<LanguageModelResponseResult>;
+    SummarizeConversationAsync(conversationItems: ConversationItem[], options: ConversationSummaryOptions): ProgressPromise<LanguageModelResponseResult>;
     SummarizeParagraphAsync(text: string): ProgressPromise<LanguageModelResponseResult>;
     IsPromptLargerThanContext(text: string): boolean;
+    IsPromptLargerThanContext(conversationItems: ConversationItem[], options: ConversationSummaryOptions): { isLarger: boolean; cutoffPosition: number };
   }
 
   export class TextRewriter {
@@ -275,6 +288,20 @@ declare module "winapp-windows-ai" {
   }
   
   // =============================
+  // Limited Access Features
+  // =============================
+  
+  export class LimitedAccessFeatures {
+    static TryUnlockFeature(featureId: string, token: string, developerSignature: string): LimitedAccessFeatureRequestResult;
+  }
+  
+  export class LimitedAccessFeatureRequestResult {
+    readonly FeatureId: string;
+    readonly Status: LimitedAccessFeatureStatus;
+    readonly EstimatedRemovalDate: Date | null;
+  }
+  
+  // =============================
   // Module Properties
   // =============================
   
@@ -294,6 +321,7 @@ declare module "winapp-windows-ai" {
     TextRewriteTone: typeof TextRewriteTone;
     ImageDescriptionResultStatus: typeof ImageDescriptionResultStatus;
     RecognizedLineStyle: typeof RecognizedLineStyle;
+    LimitedAccessFeatureStatus: typeof LimitedAccessFeatureStatus;
     
     // Language Model Classes
     LanguageModel: typeof LanguageModel;
@@ -326,6 +354,10 @@ declare module "winapp-windows-ai" {
     ImageScaler: typeof ImageScaler;
     ImageObjectExtractor: typeof ImageObjectExtractor;
     ImageObjectExtractorHint: typeof ImageObjectExtractorHint;
+    
+    // Limited Access Features
+    LimitedAccessFeatures: typeof LimitedAccessFeatures;
+    LimitedAccessFeatureRequestResult: typeof LimitedAccessFeatureRequestResult;
     
     // Module Properties
     version: string;

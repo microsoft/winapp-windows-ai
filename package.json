@@ -18,7 +18,8 @@
   "devDependencies": {
     "nan": "^2.23.0",
     "node-addon-api": "^8.5.0",
-    "node-gyp": "^11.4.2"
+    "node-gyp": "^11.4.2",
+    "@microsoft/winappcli": "..\\winappcli\\artifacts\\microsoft-winappcli-0.1.1.tgz"
   },
   "files": [
     "/winapp-windows-ai",
@@ -26,8 +27,5 @@
     "/LICENSE",
     "/index.js",
     "/index.d.ts"
-  ],
-  "dependencies": {
-    "@microsoft/winappcli": "..\\winappcli\\artifacts\\microsoft-winappcli-0.1.1.tgz"
-  }
+  ]
 }

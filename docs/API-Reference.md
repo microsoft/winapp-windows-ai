@@ -18,6 +18,9 @@ Main class for text generation and AI model interactions.
 
 **Instance Methods:**
 
+> [!IMPORTANT]  
+> This method uses a Windows API which is a part of a [Limited Access Feature](https://learn.microsoft.com/en-us/uwp/api/windows.applicationmodel.limitedaccessfeatures?view=winrt-26100). To request an unlock token, please use the [LAF Access Token Request Form](https://go.microsoft.com/fwlink/?linkid=2271232&c1cid=04x409). To use this method, you must first call [LimitedAccessFeature.TryUnlockToken](#limitedaccessfeatures). See <TODO> for usage examples.
+
 - `GenerateResponseAsync(string, LanguageModelOptions?)` - Generates text response from a prompt
 
 #### `LanguageModelOptions`
@@ -54,7 +57,8 @@ Main class for AI-powered text and conversation summarization.
 - `SummarizeAsync(string)` - Asynchronously summarizes the provided text
 - `SummarizeParagraphAsync(string)` - Asynchronously summarizes a paragraph with paragraph-specific optimization
 - `SummarizeConversationAsync(ConversationItem[], ConversationSummaryOptions)` - Asynchronously summarizes a conversation from an array of ConversationItem objects
-- `IsPromptLargerThanContext(ConversationItem[], ConversationSummaryOptions)` - Checks if conversation prompt exceeds context window
+- `IsPromptLargerThanContext(string)` - Checks if text prompt exceeds context window (returns boolean)
+- `IsPromptLargerThanContext(ConversationItem[], ConversationSummaryOptions)` - Checks if conversation prompt exceeds context window (returns object with isLarger boolean and cutoffPosition number)
 
 #### `ConversationItem`
 
@@ -68,6 +72,15 @@ Represents a single message in a conversation for summarization.
 
 - `Message` (string) - The message content
 - `Participant` (string) - The participant who sent the message (e.g., "User", "Assistant", "Support")
+
+#### `ConversationSummaryOptions`
+
+Configuration options for conversation summarization.
+
+**Properties:**
+
+- `includeMessageCitations` (boolean) - Whether to include references to specific messages in the summary
+- `includeParticipantAttribution` (boolean) - Whether to attribute parts of the summary to specific participants
 
 #### `ConversationSummaryOptions`
 
@@ -254,6 +267,32 @@ Severity levels for different types of text content.
 - `Sexual` (number) - Severity level for sexual content
 - `Violent` (number) - Severity level for violent content
 
+### Limited Access Features Classes
+
+> [!IMPORTANT]  
+> This class is currently needed to be able to use `GenerateResponseAsync`. To use this class, you will need to request an unlock token, please use the [LAF Access Token Request Form](https://go.microsoft.com/fwlink/?linkid=2271232&c1cid=04x409).
+
+#### `LimitedAccessFeatures`
+
+Provides access to Windows limited access features that require special permissions or tokens.
+
+**Static Methods:**
+
+> [!IMPORTANT]  
+> When attempting to gain access to `GenerateResponseAsync`, the feature ID should be `com.microsoft.windows.ai.languagemodel` and the developer signature should be `<insert-app-id> has registered their use of com.microsoft.windows.ai.languagemodel with Microsoft and agrees to the terms of use.`.
+
+- `TryUnlockFeature(string, string, string)` - Attempts to unlock a limited access feature using feature ID, token, and developer signature. Returns LimitedAccessFeatureRequestResult
+
+#### `LimitedAccessFeatureRequestResult`
+
+Contains the result of a limited access feature unlock request.
+
+**Properties:**
+
+- `FeatureId` (string) - The identifier of the requested feature
+- `Status` (LimitedAccessFeatureStatus) - The status of the unlock request
+- `EstimatedRemovalDate` (Date | null) - Estimated date when the feature will be removed, if applicable
+
 ### Enums and Constants
 
 #### `AIFeatureReadyState`
@@ -311,3 +350,10 @@ Severity levels for different types of text content.
 - `None` (0) - No specific style detected
 - `Handwritten` (1) - Handwritten text style
 - `Printed` (2) - Printed text style
+
+#### `LimitedAccessFeatureStatus`
+
+- `Available` (0) - Limited access feature is available with proper authentication
+- `AvailableWithoutToken` (1) - Limited access feature is available without requiring a token
+- `Unknown` (2) - Limited access feature status is unknown
+- `Unavailable` (3) - Limited access feature is not available
