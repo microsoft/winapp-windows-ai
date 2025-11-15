@@ -1,6 +1,6 @@
 # AI Agent Development Guide
 
-## winapp-windows-ai Repository
+## @microsoft/winapp-windows-ai Repository
 
 > **Purpose**: This guide provides AI agents with comprehensive context about the repository structure, coding patterns, architectural decisions, and development practices to ensure consistent and high-quality contributions.
 

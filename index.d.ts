@@ -1,8 +1,8 @@
-// Type definitions for winapp-windows-ai
+// Type definitions for @microsoft/winapp-windows-ai
 // Project: https://github.com/microsoft/winapp-windows-ai
 // Definitions by: Microsoft Corporation
 
-declare module "winapp-windows-ai" {
+declare module "@microsoft/winapp-windows-ai" {
 
   // =============================
   // Enums and Constants

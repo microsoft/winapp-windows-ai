@@ -2,7 +2,7 @@
 
 This package supports many of the API's within the [Microsoft.Windows.AI.Text](https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/microsoft.windows.ai.text?view=windows-app-sdk-1.8), [Microsoft.Windows.AI.Imaging](https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/microsoft.windows.ai.imaging?view=windows-app-sdk-1.8), and [Microsoft.Windows.AI](https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/microsoft.windows.ai?view=windows-app-sdk-1.8) namespaces.
 
-Below is the list of supported API's for the `winapp-windows-ai` package. For usage information, see the [Usage Guide](Usage.md)
+Below is the list of supported API's for the `@microsoft/winapp-windows-ai` package. For usage information, see the [Usage Guide](Usage.md)
 
 ### Core Classes
 

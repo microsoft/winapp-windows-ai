@@ -4,8 +4,9 @@
   "main": "main.js",
   "license": "MIT",
   "scripts": {
-    "start": "electron .",
-    "setup-debug": "npx winapp node add-electron-debug-identity"
+    "start": "electron --no-sandbox .",
+    "setup-debug": "npx winapp node add-electron-debug-identity",
+    "postinstall": "yarn winapp init && yarn setup-debug"
   },
   "devDependencies": {
     "electron": "^39.0.0"

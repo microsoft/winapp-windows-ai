@@ -1,15 +1,11 @@
 const { app, BrowserWindow } = require('electron/main')
 
-app.commandLine.appendSwitch('--no-sandbox');
-
 const createWindow = () => {
   const win = new BrowserWindow({
     width: 800,
     height: 600,
     autoHideMenuBar: true,
     webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
       preload: __dirname + '/preload.js',
       sandbox: false,
     }
