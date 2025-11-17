@@ -47,7 +47,7 @@ To install, [download the latest prerelease](https://github.com/microsoft/winapp
 
 ```bash
 cd <your-electron-app>
-yarn add <path to tgz>
+npm i <path to tgz>
 ```
 
 ### 3. Add @microsoft/winappcli as a Dependency
@@ -57,7 +57,7 @@ The `@microsoft/winappcli` package has not been published to npm yet. You can in
 Check the `@microsoft/winappcli` version required by `@microsoft/winapp-windows-ai` in the [Release notes](https://github.com/microsoft/winapp-windows-ai/releases). Then download the matching [release .tgz](https://github.com/microsoft/WinAppCli/releases) from the Assets section.
 
 ```bash
-yarn add <path to tgz>
+npm i <path to tgz>
 ```
 
 ### 4. Install and Setup Dependencies
@@ -65,7 +65,7 @@ yarn add <path to tgz>
 Initialize project with Windows SDK and Windows App SDK:
 
 ```bash
-yarn winapp init
+npx winapp init
 ```
 > [!IMPORTANT]
 > Edit `winapp.yaml` to use Microsoft.WindowsAppSDK `1.8.251003001` (`winapp.yaml` within app must match `@microsoft/winapp-windows-ai`'s `winapp.yaml`).
@@ -73,7 +73,7 @@ yarn winapp init
 Update Windows SDK and Windows App SDK dependencies:
 
 ```bash
-yarn winapp restore
+npx winapp restore
 ```
 
 ### 5. Add Debug Identity + Capabilities to App
@@ -89,7 +89,7 @@ Add `systemAIModels` Capability in `appxmanifest.xml` for app to gain access to 
 Add identity to Electron process (required for Windows SDK and Windows App SDK API's):
 
 ```bash
-yarn winapp node add-electron-debug-identity
+npx winapp node add-electron-debug-identity
 ```
 
 > [!IMPORTANT]
@@ -133,7 +133,7 @@ const {
       its chance of successfully achieving its goals.
     `;
 
-    const summarizationPromise = textSummarizer.SummarizeAsync(paragraph);
+    const summarizationPromise = textSummarizer.SummarizeAsync(longText);
 
     if (summarizationPromise.progress) {
       summarizationPromise.progress((error, progressText) => {
@@ -157,7 +157,7 @@ const {
 ### 8. Run Your App
 
 ```bash
-yarn electron .
+npx electron .
 ```
 
 ## Supported APIs
