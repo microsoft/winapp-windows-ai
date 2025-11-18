@@ -2,6 +2,7 @@
 .winapp/
 node_modules/
 winapp-windows-ai/build
+winapp-windows-ai/prebuilds
 artifacts/
 *.tgz
 

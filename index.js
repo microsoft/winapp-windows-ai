@@ -1,5 +1,7 @@
-const windowsaiAddon = require('./winapp-windows-ai/build/Release/winapp-windows-ai.node');
-
-windowsaiAddon.version = require('./package.json').version;
-
-module.exports = windowsaiAddon;
+const os = require('os'); 
+const arch = os.arch(); 
+if (arch === 'arm64') { 
+    module.exports = require('./winapp-windows-ai/prebuilds/win32-arm64/node.node'); 
+} else { 
+    module.exports = require('./winapp-windows-ai/prebuilds/win32-x64/node.node'); 
+}

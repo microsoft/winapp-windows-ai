@@ -136,7 +136,7 @@ try
 
     # Step 1: Build addon
     Write-Host "[BUILD] Building addon..." -ForegroundColor Blue
-    yarn build-winapp-windows-ai
+    yarn build-all
     if ($LASTEXITCODE -ne 0) {
         Write-Error "Failed to build addon"
         exit 1

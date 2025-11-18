@@ -423,7 +423,7 @@ async function testFeature() {
 
 ```bash
 # Clean build
-yarn build-winapp-windows-ai
+yarn build-all
 
 # Debug build (in binding.gyp, set 'Debug' configuration)
 # Provides better stack traces and debugging symbols

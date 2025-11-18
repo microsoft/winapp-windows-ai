@@ -8,7 +8,9 @@
   ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build-winapp-windows-ai": "node-gyp clean configure build --directory=winapp-windows-ai --arch=arm64",
+    "build-winapp-windows-ai-arm64": "cd winapp-windows-ai && prebuildify --arch arm64 --strip && cd ..",
+    "build-winapp-windows-ai-x64": "cd winapp-windows-ai && prebuildify --arch x64 --strip && cd ..",
+    "build-all": "yarn build-winapp-windows-ai-arm64 && yarn build-winapp-windows-ai-x64",
     "clean": "node -e \"require('fs').rmSync('bin', {recursive: true, force: true})\""
   },
   "keywords": [],
@@ -19,14 +21,15 @@
     "url": "git@github.com:microsoft/winapp-windows-ai.git"
   },
   "devDependencies": {
+    "@microsoft/winappcli": "..\\winappcli\\artifacts\\microsoft-winappcli-0.1.1.tgz",
     "nan": "^2.23.0",
     "node-addon-api": "^8.5.0",
     "node-gyp": "^11.4.2",
-    "@microsoft/winappcli": "..\\winappcli\\artifacts\\microsoft-winappcli-0.1.1.tgz"
+    "node-gyp-build": "^4.8.4",
+    "prebuildify": "^6.0.1"
   },
   "files": [
     "/winapp-windows-ai",
-    "/build",
     "/LICENSE",
     "/index.js",
     "/index.d.ts"
