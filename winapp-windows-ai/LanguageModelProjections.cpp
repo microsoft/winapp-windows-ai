@@ -313,7 +313,9 @@ Napi::Value MyAIFeatureReadyResult::GetErrorDisplayText(const Napi::CallbackInfo
             return env.Null();
         }
         auto errorDisplayText = m_result->ErrorDisplayText();
-        return Napi::String::New(env, winrt::to_string(errorDisplayText));
+        std::string combinedErrorText = winrt::to_string(errorDisplayText) + 
+            " If EnsureReadyAsync or GetReadyState returned Failure, your machine is missing system requirements for running Windows AI APIs. Check https://learn.microsoft.com/windows/ai/apis/get-started for more information.";
+        return Napi::String::New(env, combinedErrorText);
     } catch (const winrt::hresult_error& ex) {
         std::string errorMsg = "WinRT error getting error display text: " + winrt::to_string(ex.message());
         Napi::Error::New(env, errorMsg).ThrowAsJavaScriptException();
