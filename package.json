@@ -1,6 +1,6 @@
 {
   "name": "@microsoft/winapp-windows-ai",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "main": "index.js",
   "types": "index.d.ts",
   "os": [
@@ -10,7 +10,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build-winapp-windows-ai-arm64": "cd winapp-windows-ai && prebuildify --arch arm64 --strip && cd ..",
     "build-winapp-windows-ai-x64": "cd winapp-windows-ai && prebuildify --arch x64 --strip && cd ..",
-    "build-all": "yarn build-winapp-windows-ai-arm64 && yarn build-winapp-windows-ai-x64",
+    "build-all": "npm run build-winapp-windows-ai-arm64 && npm run build-winapp-windows-ai-x64",
     "clean": "node -e \"require('fs').rmSync('bin', {recursive: true, force: true})\""
   },
   "keywords": [],

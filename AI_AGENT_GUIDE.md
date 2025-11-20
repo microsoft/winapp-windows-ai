@@ -423,7 +423,7 @@ async function testFeature() {
 
 ```bash
 # Clean build
-yarn build-all
+npx build-all
 
 # Debug build (in binding.gyp, set 'Debug' configuration)
 # Provides better stack traces and debugging symbols
@@ -431,7 +431,7 @@ yarn build-all
 
 #### **Common Build Issues**
 
-- **Missing Windows SDK**: Run `yarn winapp restore`
+- **Missing Windows SDK**: Run `npx winapp restore`
 - **Wrong architecture**: Check `--arch=arm64` vs `--arch=x64` in package.json
 - **Missing dependencies**: Ensure Visual Studio 2022 C++ tools installed
 

@@ -17,7 +17,6 @@ The Windows AI Addon for Electron is a Node.js native addon that provides access
 - **Node.js** 18.x or later
 - **Visual Studio 2022** with C++ build tools
 - **Python** 3.x
-- **Yarn** package manager
 - **Limited Access Feature Token for Phi Silica** - Request a token using the [LAF Access Token Request Form](https://forms.office.com/pages/responsepage.aspx?id=v4j5cvGGr0GRqy180BHbR25txIwisw1PlceTVpYHUm9UODlVMkszVTFaRlVLVlBPNkNaV0hKMzM5Mi4u&route=shorturl). Only needed if you wish to use the `GenerateResponseAsync` API.
 
 See [Windows AI API's Dependencies](https://learn.microsoft.com/windows/ai/apis/get-started?tabs=winget%2Cwinui%2Cwinui2#dependencies) for more information on system requirements to run Windows AI API's and scripts to install required prerequisites.
@@ -52,7 +51,7 @@ npm i <path to tgz>
 
 ### 3. Add @microsoft/winappcli as a Dependency
 
-The `@microsoft/winappcli` package has not been published to npm yet. You can install it from GitHub.
+The `@microsoft/winappcli` package has not been published to npm yet.
 
 To install, [download the latest release](https://github.com/microsoft/WinAppCli/releases) from GitHub Releases.
 
@@ -68,7 +67,7 @@ Initialize project with Windows SDK and Windows App SDK:
 npx winapp init
 ```
 > [!IMPORTANT]
-> Edit `winapp.yaml` to use Microsoft.WindowsAppSDK `1.8.251106002` (`winapp.yaml` in the app can specify a different WinAppSDK version, provided it matches the same minor version (e.g., v1.8.x) as `@microsoft/winapp-windows-ai`’s `winapp.yaml`).
+> Edit `winapp.yaml` to use Microsoft.WindowsAppSDK `1.8.251106002` (you can specify a different WinAppSDK version, provided it matches the same minor version e.g., v1.8.x).
 
 Update Windows SDK and Windows App SDK dependencies:
 
@@ -190,6 +189,8 @@ winapp-windows-ai/
 │   ├── ImagingProjections.cpp
 │   ├── ContentSeverity.h            # Content safety APIs
 │   ├── ContentSeverity.cpp
+│   ├── LimitedAccessFeature.h       # Limited Access Feature token APIs
+│   ├── LimitedAccessFeature.cpp
 │   ├── ProjectionHelper.h           # Utility functions
 │   ├── ProjectionHelper.cpp
 │   └── binding.gyp                  # Build configuration
@@ -227,14 +228,14 @@ Move the `.tgz` file to the file path specified in `package.json` or update `pac
 
 ```bash
 cd <path to @microsoft/winapp-windows-ai repo>
-yarn install
-yarn winapp restore
+npm install
+npx winapp restore
 ```
 
 #### 4. Build the Native Addon
 
 ```bash
-yarn build-winapp-windows-ai
+npm run build-all
 ```
 
 ### Building `test-app` Locally
@@ -249,19 +250,19 @@ If `@microsoft/winappcli` package is installed at a different location than spec
 
 Install dependencies:
 ```bash
-yarn install
+npm install
 ```
 
 Initialize Windows App Development CLI (select Y to preserve dependency versions):
 ```bash
-yarn winapp init
-yarn setup-debug
+npx winapp init
+npm run setup-debug
 ```
 
 #### 3. Run the App
 
 ```bash
-yarn run start
+npm run start
 ```
 
 If you make changes to the `@microsoft/winapp-windows-ai` package and want to see your changes loaded into the sample app, make sure to re-build the addon before re-running `test-app`.
@@ -276,21 +277,16 @@ This project is licensed under the MIT License - see the [LICENSE](/LICENSE) for
 
 1. **"AI not ready" or EnsureReadyAsync()/GetReadyState() return status AIFeatureReadyResultState::Failure(2)**: Ensure Windows 11 25H2+ (Windows Insider Preview) and Copilot+ PC requirements are met. Validate your device has Windows AI models installed and available by downloading the [AI Dev Gallery app](https://apps.microsoft.com/detail/9n9pn1mm3bd5?hl=en-US&gl=US). Then navigate to the "AI APIs" samples and ensure they can run on your device. (see [Prerequisites](#prerequisites))
 2. **EnsureReadyAsync cancelled or failed**: Ensure `appxmanifest` has the `systemAIModels` capability added (see [Add Debug Identity + Capabilities to App](#5-add-debug-identity--capabilities-to-app))
-3. **"Class Not Registered"**:
+3. **"Class Not Registered"**: Make sure you have correctly setup the `@microsoft/winappcli` package (see [Add @microsoft/winappcli as a Dependency](#3-add-microsoftwinappcli-as-a-dependency)).
+   - If the issue is still persisting:
+      1. Delete `node_modules`, `yarn.lock`, and `.winapp`
+      2. Run `npm cache clean --force`
+      3. Run `npm install`
+      4. Run `npx winapp restore`
+      5. Run `npx winapp node add-electron-debug-identity`
 
-   1. Make sure `@microsoft/winappcli` package was setup correctly.
-   2. Ensure `winapp.yaml` file in app exactly matches the `winapp.yaml` file in `@microsoft/winapp-windows-ai`.
-   3. Ensure `yarn winapp restore` then `yarn winapp node add-electron-debug-identity` have been called.
-   4. If the issue is still persisting:
-      1. Delete `node_modules` and `.winapp`
-      2. Run `yarn cache clean`
-      3. Run `yarn install`
-      4. Run `yarn winapp restore`
-      5. Run `yarn winapp node add-electron-debug-identity`
-
-4. **App renders blank**: Make sure to disable sandboxing when running your Electron app on Windows, then re-run `yarn winapp node add-electron-debug-identity` (see [Add Debug Identity + Capabilities to App](#5-add-debug-identity--capabilities-to-app))
+4. **App renders blank**: Make sure to disable sandboxing when running your Electron app on Windows, then re-run `npx winapp node add-electron-debug-identity` (see [Add Debug Identity + Capabilities to App](#5-add-debug-identity--capabilities-to-app))
 5. **"Can't find module: @microsoft/winapp-windows-ai"**: Make sure sandboxing has been disabled in `webPreferences` (see [Use @microsoft/winapp-windows-ai](#6-use-winapp-windows-ai))
-6. **"'functionName' doesn't exist"**: Make sure `preload.js` file has been created. Add `preload.js` to `webPreferences` with the correct absolute path (see [Use @microsoft/winapp-windows-ai](#6-use-winapp-windows-ai)). Path may vary depending on Electron template being used.
 7. **Image file not found**: You must use absolute file paths with proper Windows path separators.
 8. **Content moderation blocks**: Adjust `ContentFilterOptions` severity levels as appropriate.
 9. **Memory issues**: Always call `Close()` or `Dispose()` methods to clean up resources.

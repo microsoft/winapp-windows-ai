@@ -6,7 +6,7 @@
   "scripts": {
     "start": "electron --no-sandbox .",
     "setup-debug": "npx winapp node add-electron-debug-identity",
-    "postinstall": "yarn winapp init && yarn setup-debug"
+    "postinstall": "npx winapp init && npx setup-debug"
   },
   "devDependencies": {
     "electron": "^39.0.0"

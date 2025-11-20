@@ -108,7 +108,7 @@ try
         
         # Install npm dependencies
         Write-Host "[SETUP] Installing npm dependencies..." -ForegroundColor Blue
-        yarn install
+        npm install
         if ($LASTEXITCODE -ne 0) {
             Write-Error "Failed to install npm dependencies"
             exit 1
@@ -116,7 +116,7 @@ try
         
         # Setup winappcli dependency
         Write-Host "[SETUP] Setting up winappcli dependency..." -ForegroundColor Blue
-        yarn winapp restore
+        npx winapp restore
         if ($LASTEXITCODE -ne 0) {
             Write-Error "Failed to setup winappcli dependency"
             exit 1
@@ -136,7 +136,7 @@ try
 
     # Step 1: Build addon
     Write-Host "[BUILD] Building addon..." -ForegroundColor Blue
-    yarn build-all
+    npm run build-all
     if ($LASTEXITCODE -ne 0) {
         Write-Error "Failed to build addon"
         exit 1
