@@ -167,6 +167,25 @@ try
     Write-Host "[VERSION] Using prerelease version (with prerelease suffix)" -ForegroundColor Cyan
     Write-Host "[VERSION] Package version: $FullVersion" -ForegroundColor Cyan
 
+    # Create git tag for this prerelease version
+    Write-Host "[GIT] Creating git tag: $FullVersion" -ForegroundColor Blue
+    try {
+        # Check if tag already exists
+        $existingTag = git tag -l $FullVersion 2>$null
+        if ([string]::IsNullOrEmpty($existingTag)) {
+            git tag $FullVersion
+            if ($LASTEXITCODE -eq 0) {
+                Write-Host "[GIT] Successfully created tag: $FullVersion" -ForegroundColor Green
+            } else {
+                Write-Warning "[GIT] Failed to create git tag, continuing without tag"
+            }
+        } else {
+            Write-Host "[GIT] Tag $FullVersion already exists" -ForegroundColor Yellow
+        }
+    } catch {
+        Write-Warning "[GIT] Failed to create git tag: $($_.Exception.Message)"
+    }
+
     # Extract semantic version components for assembly versioning
     # BaseVersion should be in format major.minor.patch (e.g., "0.1.0")
     $VersionParts = $BaseVersion -split '\.'

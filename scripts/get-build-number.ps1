@@ -1,20 +1,21 @@
 <#
 .SYNOPSIS
-    Calculates the build number based on commits since version.json was last changed.
+    Calculates the prerelease number based on the highest existing prerelease for the current version.
 
 .DESCRIPTION
-    This script counts the number of commits since version.json was last modified.
-    The build number starts at 1 when version.json is changed, and increments with each subsequent commit.
+    This script finds the highest prerelease number for the current base version from git tags,
+    then increments it by 1. If no prerelease exists for the current version, starts at 1.
 
 .PARAMETER VersionFile
-    Path to the version.json file. Defaults to ../version.json relative to this script.
+    Path to the package.json file. Defaults to ../package.json relative to this script.
 
 .OUTPUTS
-    Returns the build number as an integer.
+    Returns the prerelease number as an integer.
 
 .EXAMPLE
     .\get-build-number.ps1
-    # Returns: 25 (if there have been 25 commits since version.json changed)
+    # For version 0.1.3 with existing tags 0.1.3-prerelease.5, 0.1.3-prerelease.7
+    # Returns: 8 (highest + 1)
 #>
 
 param(
@@ -34,31 +35,44 @@ if (-not (Test-Path $VersionFile)) {
 }
 
 try {
-    # Get the commit hash where package.json was last changed
-    $lastVersionCommit = git log -1 --format="%H" -- $VersionFile 2>$null
+    # Read the current base version from package.json
+    $packageJson = Get-Content $VersionFile | ConvertFrom-Json
+    $baseVersion = $packageJson.version
     
-    if ([string]::IsNullOrEmpty($lastVersionCommit)) {
-        # package.json hasn't been committed yet, count all commits
-        $buildNumber = git rev-list --count HEAD 2>$null
-        if ([string]::IsNullOrEmpty($buildNumber)) {
-            # No commits yet
-            Write-Output "1"
-            exit 0
-        }
-    } else {
-        # Count commits since version.json was last changed (exclusive of that commit)
-        $buildNumber = git rev-list --count "$lastVersionCommit..HEAD" 2>$null
-        
-        if ([string]::IsNullOrEmpty($buildNumber)) {
-            $buildNumber = 0
-        }
-        
-        # Add 1 because we want build numbers to start at 1, not 0
-        $buildNumber = [int]$buildNumber + 1
+    Write-Host "[PRERELEASE] Base version from package.json: $baseVersion" -ForegroundColor Cyan
+    
+    # Get all git tags that match the current base version with prerelease pattern
+    $tagPattern = "$baseVersion-prerelease.*"
+    $allTags = git tag -l 2>$null
+    
+    if ([string]::IsNullOrEmpty($allTags)) {
+        Write-Host "[PRERELEASE] No git tags found, starting at prerelease.1" -ForegroundColor Yellow
+        Write-Output "1"
+        exit 0
     }
     
-    Write-Output $buildNumber
+    # Filter tags that match our version pattern and extract prerelease numbers
+    $matchingTags = $allTags | Where-Object { $_ -like $tagPattern }
+    $prereleaseNumbers = @()
+    
+    foreach ($tag in $matchingTags) {
+        if ($tag -match "$baseVersion-prerelease\.(\d+)") {
+            $prereleaseNumbers += [int]$matches[1]
+            Write-Host "[PRERELEASE] Found existing tag: $tag (prerelease.$($matches[1]))" -ForegroundColor Gray
+        }
+    }
+    
+    if ($prereleaseNumbers.Count -eq 0) {
+        Write-Host "[PRERELEASE] No prerelease tags found for version $baseVersion, starting at prerelease.1" -ForegroundColor Yellow
+        Write-Output "1"
+    } else {
+        $highestPrerelease = ($prereleaseNumbers | Measure-Object -Maximum).Maximum
+        $nextPrerelease = $highestPrerelease + 1
+        Write-Host "[PRERELEASE] Highest existing prerelease: $highestPrerelease, next: $nextPrerelease" -ForegroundColor Green
+        Write-Output $nextPrerelease
+    }
+    
 } catch {
-    Write-Error "Failed to calculate build number: $_"
+    Write-Error "Failed to calculate prerelease number: $_"
     exit 1
 }
