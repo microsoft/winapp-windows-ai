@@ -36,7 +36,7 @@ Let's walk through a simple tutorial of how to get started using `@microsoft/win
 
 Create an electron app by following the getting started directions at [Electron: Building you First App](https://www.electronjs.org/docs/latest/tutorial/tutorial-first-app).
 
-The instructions below follow the steps for adding `@microsoft/winapp-windows-ai` to a standard Electron app. This module can also be added to Electron apps built using [Electron Forge](https://www.electronforge.io/) and other templates. The setup steps should be similar, but additional configuration may be required to support using NodeJS addons.
+The instructions below follow the steps for adding `@microsoft/winapp-windows-ai` to a standard Electron app. This module can also be added to Electron apps built using [Electron Forge](https://www.electronforge.io/) and other templates.
 
 ### 2. Add @microsoft/winapp-windows-ai as a Dependency
 
@@ -67,7 +67,7 @@ Initialize project with Windows SDK and Windows App SDK:
 npx winapp init
 ```
 > [!IMPORTANT]
-> Edit `winapp.yaml` to use Microsoft.WindowsAppSDK `1.8.251106002` (you can specify a different WinAppSDK version, provided it matches the same minor version e.g., v1.8.x).
+> Edit `winapp.yaml` to use Microsoft.WindowsAppSDK `1.8.251106002` (you can specify a different WinAppSDK version, provided it matches the same major and minor version e.g., v1.8.x).
 
 Update Windows SDK and Windows App SDK dependencies:
 
@@ -218,7 +218,7 @@ git clone https://github.com/microsoft/winapp-windows-ai.git
 
 #### 2. Download Windows App Development CLI Package
 
-The `@microsoft/winappcli` package has not been published to npm yet. You can install it from GitHub.
+The `@microsoft/winappcli` package has not been published to npm yet.
 
 To install, [download the latest release](https://github.com/microsoft/WinAppCli/releases) from GitHub Releases.
 
@@ -275,7 +275,7 @@ This project is licensed under the MIT License - see the [LICENSE](/LICENSE) for
 
 ### Common Issues
 
-1. **"AI not ready" or EnsureReadyAsync()/GetReadyState() return status AIFeatureReadyResultState::Failure(2)**: Ensure Windows 11 25H2+ (Windows Insider Preview) and Copilot+ PC requirements are met. Validate your device has Windows AI models installed and available by downloading the [AI Dev Gallery app](https://apps.microsoft.com/detail/9n9pn1mm3bd5?hl=en-US&gl=US). Then navigate to the "AI APIs" samples and ensure they can run on your device. (see [Prerequisites](#prerequisites))
+1. **"AI not ready" or EnsureReadyAsync/GetReadyState return status AIFeatureReadyResultState::Failure(2)**: Ensure Windows 11 25H2+ (Windows Insider Preview) and Copilot+ PC requirements are met. Validate your device has Windows AI models installed and available by downloading the [AI Dev Gallery app](https://apps.microsoft.com/detail/9n9pn1mm3bd5?hl=en-US&gl=US). Then navigate to the "AI APIs" samples and ensure they can run on your device. (see [Prerequisites](#prerequisites))
 2. **EnsureReadyAsync cancelled or failed**: Ensure `appxmanifest` has the `systemAIModels` capability added (see [Add Debug Identity + Capabilities to App](#5-add-debug-identity--capabilities-to-app))
 3. **"Class Not Registered"**: Make sure you have correctly setup the `@microsoft/winappcli` package (see [Add @microsoft/winappcli as a Dependency](#3-add-microsoftwinappcli-as-a-dependency)).
    - If the issue is still persisting:
@@ -285,8 +285,8 @@ This project is licensed under the MIT License - see the [LICENSE](/LICENSE) for
       4. Run `npx winapp restore`
       5. Run `npx winapp node add-electron-debug-identity`
 
-4. **App renders blank**: Make sure to disable sandboxing when running your Electron app on Windows, then re-run `npx winapp node add-electron-debug-identity` (see [Add Debug Identity + Capabilities to App](#5-add-debug-identity--capabilities-to-app))
-5. **"Can't find module: @microsoft/winapp-windows-ai"**: Make sure sandboxing has been disabled in `webPreferences` (see [Use @microsoft/winapp-windows-ai](#6-use-winapp-windows-ai))
+4. **App renders blank**: You may need to disable sandboxing when running your Electron app on Windows. Then re-run `npx winapp node add-electron-debug-identity` (see [Add Debug Identity + Capabilities to App](#5-add-debug-identity--capabilities-to-app))
+5. **"Can't find module: @microsoft/winapp-windows-ai"**: Verify you have added the `@microsoft/winapp-windows-ai` package as a dependency to your application.
 7. **Image file not found**: You must use absolute file paths with proper Windows path separators.
 8. **Content moderation blocks**: Adjust `ContentFilterOptions` severity levels as appropriate.
 9. **Memory issues**: Always call `Close()` or `Dispose()` methods to clean up resources.
