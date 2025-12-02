@@ -51,12 +51,8 @@ npm i <path to tgz>
 
 ### 3. Add @microsoft/winappcli as a Dependency
 
-The `@microsoft/winappcli` package has not been published to npm yet.
-
-To install, [download the latest release](https://github.com/microsoft/WinAppCli/releases) from GitHub Releases.
-
 ```bash
-npm i <path to tgz>
+npm i @microsoft/winappcli
 ```
 
 ### 4. Install and Setup Dependencies
@@ -216,15 +212,7 @@ winapp-windows-ai/
 git clone https://github.com/microsoft/winapp-windows-ai.git
 ```
 
-#### 2. Download Windows App Development CLI Package
-
-The `@microsoft/winappcli` package has not been published to npm yet.
-
-To install, [download the latest release](https://github.com/microsoft/WinAppCli/releases) from GitHub Releases.
-
-Move the `.tgz` file to the file path specified in `package.json` or update `package.json` with the correct `.tgz` path.
-
-#### 3. Install Dependencies
+#### 2. Install Dependencies
 
 ```bash
 cd <path to @microsoft/winapp-windows-ai repo>
@@ -232,7 +220,7 @@ npm install
 npx winapp restore
 ```
 
-#### 4. Build the Native Addon
+#### 3. Build the Native Addon
 
 ```bash
 npm run build-all
@@ -245,8 +233,6 @@ npm run build-all
 Complete [Building the Package Locally](#1-build-package-locally) steps above.
 
 #### 2. Setup Dependencies
-
-If `@microsoft/winappcli` package is installed at a different location than specified in `test-app/package.json`, update the `test-app/package.json` entry.
 
 Install dependencies:
 ```bash
