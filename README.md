@@ -94,7 +94,7 @@ npx winapp node add-electron-debug-identity
 ```javacript
 ...
 "scripts": {
-    "start": "electron --no-sandbox",
+    "start": "electron --no-sandbox .",
   }
 ...
 ```
@@ -149,10 +149,16 @@ const {
 ...
 ```
 
-### 8. Run Your App
+### 7. Run Your App
 
+If start script created in `package.json`:
 ```bash
-npx electron .
+npm run start
+```
+
+otherwise:
+```bash
+npm electron .
 ```
 
 ## Supported APIs
