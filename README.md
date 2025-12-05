@@ -150,7 +150,8 @@ const summarizeText = async () => {
 }
 ```
 
-Call `summarizeText` somewhere in your `main.js` or `index.js`:
+Call `summarizeText` somewhere in your `main.js` or `index.js`.
+
 Here's an example:
 ```diff
 const createWindow = () => {
