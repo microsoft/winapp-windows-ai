@@ -61,6 +61,17 @@ extends:
               versionSpec: '24.x'
           
           - task: PowerShell@2
+            displayName: Verify Node.js and npm versions
+            inputs:
+              targetType: inline
+              script: |
+                Write-Host "Node.js version:"
+                node --version
+                Write-Host "npm version:"
+                npm --version
+                Write-Host "PATH: $env:PATH"
+          
+          - task: PowerShell@2
             name: SetMeta
             displayName: Calculate version and export metadata
             inputs:
