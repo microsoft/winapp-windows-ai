@@ -103,24 +103,9 @@ try
     Write-Host "[VERSION] Using prerelease version (with prerelease suffix)" -ForegroundColor Cyan
     Write-Host "[VERSION] Package version: $FullVersion" -ForegroundColor Cyan
 
-    # Create git tag for this prerelease version
-    Write-Host "[GIT] Creating git tag: $FullVersion" -ForegroundColor Blue
-    try {
-        # Check if tag already exists
-        $existingTag = git tag -l $FullVersion 2>$null
-        if ([string]::IsNullOrEmpty($existingTag)) {
-            git tag $FullVersion
-            if ($LASTEXITCODE -eq 0) {
-                Write-Host "[GIT] Successfully created tag: $FullVersion" -ForegroundColor Green
-            } else {
-                Write-Warning "[GIT] Failed to create git tag, continuing without tag"
-            }
-        } else {
-            Write-Host "[GIT] Tag $FullVersion already exists" -ForegroundColor Yellow
-        }
-    } catch {
-        Write-Warning "[GIT] Failed to create git tag: $($_.Exception.Message)"
-    }
+    # Prepare git tag (will be created at the end if build succeeds)
+    $GitTag = "v$FullVersion"
+    Write-Host "[VERSION] Will create git tag: $GitTag (after successful build)" -ForegroundColor Cyan
 
     # Extract semantic version components for assembly versioning
     # BaseVersion should be in format major.minor.patch (e.g., "0.1.0")
@@ -166,7 +151,24 @@ try
         exit 1
     }
 
-    # Build process complete - all artifacts are ready
+    # Build process complete - now create the git tag
+    Write-Host "[GIT] Creating git tag: $GitTag" -ForegroundColor Blue
+    try {
+        # Check if tag already exists
+        $existingTag = git tag -l $GitTag 2>$null
+        if ([string]::IsNullOrEmpty($existingTag)) {
+            git tag $GitTag
+            if ($LASTEXITCODE -eq 0) {
+                Write-Host "[GIT] Successfully created tag: $GitTag" -ForegroundColor Green
+            } else {
+                Write-Warning "[GIT] Failed to create git tag. Build succeeded but tag was not created."
+            }
+        } else {
+            Write-Host "[GIT] Tag $GitTag already exists" -ForegroundColor Yellow
+        }
+    } catch {
+        Write-Warning "[GIT] Failed to create git tag: $($_.Exception.Message). Build succeeded but tag was not created."
+    }
 
     # Display results
     Write-Host ""

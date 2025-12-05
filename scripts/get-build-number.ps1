@@ -42,7 +42,7 @@ try {
     Write-Host "[PRERELEASE] Base version from package.json: $baseVersion" -ForegroundColor Cyan
     
     # Get all git tags that match the current base version with prerelease pattern
-    $tagPattern = "$baseVersion-prerelease.*"
+    $tagPattern = "v$baseVersion-prerelease.*"
     $allTags = git tag -l 2>$null
     
     if ([string]::IsNullOrEmpty($allTags)) {
@@ -56,7 +56,7 @@ try {
     $prereleaseNumbers = @()
     
     foreach ($tag in $matchingTags) {
-        if ($tag -match "$baseVersion-prerelease\.(\d+)") {
+        if ($tag -match "v$baseVersion-prerelease\.(\d+)") {
             $prereleaseNumbers += [int]$matches[1]
             Write-Host "[PRERELEASE] Found existing tag: $tag (prerelease.$($matches[1]))" -ForegroundColor Gray
         }
