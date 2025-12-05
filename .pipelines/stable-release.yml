@@ -55,24 +55,25 @@ extends:
                 packageType: runtime
                 version: 6.0.x
           
-          - task: NodeTool@0
+          - task: UseNode@1
             displayName: Setup Node.js 24
             inputs:
-              versionSpec: '24.x'
+              version: '24.x'
           
           - task: PowerShell@2
-            displayName: Verify Node.js and npm versions
+            displayName: Configure npm prefix (user-writable)
             inputs:
               targetType: inline
               script: |
-                Write-Host "Node.js version: $(node --version)"
+                $npmPrefix = "$env:USERPROFILE\.npm-global"
+                New-Item -ItemType Directory -Force -Path $npmPrefix | Out-Null
+                npm config set prefix $npmPrefix
+                $env:PATH = "$npmPrefix\bin;$env:PATH"
+                # Persist PATH for subsequent tasks
+                Write-Host "##vso[task.setvariable variable=PATH]$env:PATH"
+                Write-Host "npm prefix configured to: $npmPrefix"
+                Write-Host "Node version: $(node --version)"
                 Write-Host "npm version: $(npm --version)"
-          
-          - task: Npm@1
-            displayName: Install npm dependencies
-            inputs:
-              command: 'install'
-              workingDir: '$(Build.SourcesDirectory)'
           
           - task: PowerShell@2
             name: SetMeta
@@ -106,7 +107,7 @@ extends:
             displayName: Build package
             inputs:
               filePath: 'scripts/build-pkg.ps1'
-              arguments: '-SkipDependencies'
+              arguments: ''
           
           - task: 1ES.PublishPipelineArtifact@1
             displayName: Upload npm package
