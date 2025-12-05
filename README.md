@@ -180,11 +180,6 @@ If start script created in `package.json`:
 npm run start
 ```
 
-otherwise:
-```bash
-npm electron .
-```
-
 ## Supported APIs
 
 This package supports many of the API's within
