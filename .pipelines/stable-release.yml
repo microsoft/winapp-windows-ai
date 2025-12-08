@@ -60,20 +60,10 @@ extends:
             inputs:
               version: '24.x'
           
-          - task: PowerShell@2
-            displayName: Configure npm prefix (user-writable)
+          - task: npmAuthenticate@0
+            displayName: Authenticate with Azure Artifacts feed
             inputs:
-              targetType: inline
-              script: |
-                $npmPrefix = "$env:USERPROFILE\.npm-global"
-                New-Item -ItemType Directory -Force -Path $npmPrefix | Out-Null
-                npm config set prefix $npmPrefix
-                $env:PATH = "$npmPrefix\bin;$env:PATH"
-                # Persist PATH for subsequent tasks
-                Write-Host "##vso[task.setvariable variable=PATH]$env:PATH"
-                Write-Host "npm prefix configured to: $npmPrefix"
-                Write-Host "Node version: $(node --version)"
-                Write-Host "npm version: $(npm --version)"
+              artifactFeed: 'pde-oss/winapp-windows-ai-npm-feed'
           
           - task: PowerShell@2
             name: SetMeta

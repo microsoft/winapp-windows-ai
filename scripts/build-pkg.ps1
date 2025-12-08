@@ -44,7 +44,7 @@ try
         
         # Install npm dependencies (includes @microsoft/winappcli from npm)
         Write-Host "[SETUP] Installing npm dependencies..." -ForegroundColor Blue
-        npm install --unsafe-perm
+        npm install
         if ($LASTEXITCODE -ne 0) {
             Write-Error "Failed to install npm dependencies"
             exit 1
