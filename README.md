@@ -40,13 +40,9 @@ The instructions below follow the steps for adding `@microsoft/winapp-windows-ai
 
 ### 2. Add @microsoft/winapp-windows-ai as a Dependency
 
-The `@microsoft/winapp-windows-ai` package has not been published to npm yet.
-
-To install, [download the latest prerelease](https://github.com/microsoft/winapp-windows-ai/releases) from GitHub Releases.
-
 ```bash
 cd <your-electron-app>
-npm i <path to tgz>
+npm i @microsoft/winapp-windows-ai
 ```
 
 ### 3. Add @microsoft/winappcli as a Dependency
@@ -175,7 +171,6 @@ const createWindow = () => {
 
 ### 7. Run Your App
 
-If start script created in `package.json`:
 ```bash
 npm run start
 ```
