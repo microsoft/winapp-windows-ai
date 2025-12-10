@@ -159,7 +159,7 @@ const createWindow = () => {
 ### 8. Run Your App
 
 ```bash
-npm run start
+npx electron .
 ```
 
 You should see the local model streaming the response to the console.
